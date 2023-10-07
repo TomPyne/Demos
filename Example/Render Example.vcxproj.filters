@@ -1,0 +1,180 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Source Files\Render">
+      <UniqueIdentifier>{0881173e-d3c7-4570-8796-5acf65a6e7c2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Render\Impl">
+      <UniqueIdentifier>{4b8605a3-35c3-4e46-8c26-2c0d025a7eb8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Render\Impl\Dx11">
+      <UniqueIdentifier>{d3f37173-27fc-4e28-ad14-afb6df1d8e6d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\imgui">
+      <UniqueIdentifier>{9c658428-c7a4-427b-b55d-064c185dd5b0}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Render Example.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Render\Binding.cpp">
+      <Filter>Source Files\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Render\Buffers.cpp">
+      <Filter>Source Files\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Render\CommandList.cpp">
+      <Filter>Source Files\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Render\PipelineState.cpp">
+      <Filter>Source Files\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Render\Shaders.cpp">
+      <Filter>Source Files\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Render\Textures.cpp">
+      <Filter>Source Files\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Render\Impl\Dx11\BindingImpl.cpp">
+      <Filter>Source Files\Render\Impl\Dx11</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Render\Impl\Dx11\BuffersImpl.cpp">
+      <Filter>Source Files\Render\Impl\Dx11</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Render\Impl\Dx11\CommandListImpl.cpp">
+      <Filter>Source Files\Render\Impl\Dx11</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Render\Impl\Dx11\Dx11Types.cpp">
+      <Filter>Source Files\Render\Impl\Dx11</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Render\Impl\Dx11\PipelineStateImpl.cpp">
+      <Filter>Source Files\Render\Impl\Dx11</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Render\Impl\Dx11\RenderImpl.cpp">
+      <Filter>Source Files\Render\Impl\Dx11</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Render\Impl\Dx11\SamplersImpl.cpp">
+      <Filter>Source Files\Render\Impl\Dx11</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Render\Impl\Dx11\ShadersImpl.cpp">
+      <Filter>Source Files\Render\Impl\Dx11</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Render\Impl\Dx11\TexturesImpl.cpp">
+      <Filter>Source Files\Render\Impl\Dx11</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Render\Impl\Dx11\ViewImpl.cpp">
+      <Filter>Source Files\Render\Impl\Dx11</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui\imgui.cpp">
+      <Filter>Source Files\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui\imgui_demo.cpp">
+      <Filter>Source Files\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui\imgui_draw.cpp">
+      <Filter>Source Files\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui\imgui_widgets.cpp">
+      <Filter>Source Files\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui_impl_render.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui_impl_win32.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Render\Binding.h">
+      <Filter>Source Files\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Render\Buffers.h">
+      <Filter>Source Files\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Render\CommandList.h">
+      <Filter>Source Files\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Render\IDArray.h">
+      <Filter>Source Files\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Render\PipelineState.h">
+      <Filter>Source Files\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Render\Render.h">
+      <Filter>Source Files\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Render\RenderTypes.h">
+      <Filter>Source Files\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Render\Samplers.h">
+      <Filter>Source Files\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Render\Shaders.h">
+      <Filter>Source Files\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Render\Textures.h">
+      <Filter>Source Files\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Render\View.h">
+      <Filter>Source Files\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Render\Impl\BindingImpl.h">
+      <Filter>Source Files\Render\Impl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Render\Impl\BuffersImpl.h">
+      <Filter>Source Files\Render\Impl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Render\Impl\PipelineStateImpl.h">
+      <Filter>Source Files\Render\Impl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Render\Impl\ShadersImpl.h">
+      <Filter>Source Files\Render\Impl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Render\Impl\TexturesImpl.h">
+      <Filter>Source Files\Render\Impl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Render\Impl\Dx11\Dx11Types.h">
+      <Filter>Source Files\Render\Impl\Dx11</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Render\Impl\Dx11\RenderImpl.h">
+      <Filter>Source Files\Render\Impl\Dx11</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui\imconfig.h">
+      <Filter>Source Files\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui\imgui.h">
+      <Filter>Source Files\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui\imgui_internal.h">
+      <Filter>Source Files\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui\imstb_rectpack.h">
+      <Filter>Source Files\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui\imstb_textedit.h">
+      <Filter>Source Files\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui\imstb_truetype.h">
+      <Filter>Source Files\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui_impl_render.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui_impl_win32.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
