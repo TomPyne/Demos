@@ -157,9 +157,11 @@
     <ClCompile Include="..\ThirdParty\imgui\imgui_demo.cpp" />
     <ClCompile Include="..\ThirdParty\imgui\imgui_draw.cpp" />
     <ClCompile Include="..\ThirdParty\imgui\imgui_widgets.cpp" />
+    <ClCompile Include="..\Utils\DDSTextureLoader.cpp" />
     <ClCompile Include="..\Utils\Files.cpp" />
     <ClCompile Include="..\Utils\GltfLoader.cpp" />
     <ClCompile Include="..\Utils\Logging.cpp" />
+    <ClCompile Include="..\Utils\TextureLoader.cpp" />
     <ClCompile Include="GltfViewer.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -190,12 +192,15 @@
     <ClInclude Include="..\ThirdParty\imgui\imstb_textedit.h" />
     <ClInclude Include="..\ThirdParty\imgui\imstb_truetype.h" />
     <ClInclude Include="..\ThirdParty\rapidjson\rapidjson.h" />
+    <ClInclude Include="..\ThirdParty\stb\stb_image.h" />
+    <ClInclude Include="..\Utils\DDSTextureLoader.h" />
     <ClInclude Include="..\Utils\Files.h" />
     <ClInclude Include="..\Utils\GltfLoader.h" />
     <ClInclude Include="..\Utils\HighResolutionClock.h" />
     <ClInclude Include="..\Utils\KeyCodes.h" />
     <ClInclude Include="..\Utils\Logging.h" />
     <ClInclude Include="..\Utils\SurfMath.h" />
+    <ClInclude Include="..\Utils\TextureLoader.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

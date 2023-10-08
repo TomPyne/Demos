@@ -120,12 +120,23 @@ struct GltfMeshAttribute
 };
 typedef std::vector<GltfMeshAttribute> GltfMeshAttributesArray;
 
+enum class GltfMeshMode : uint32_t
+{
+    POINTS,
+    LINES,
+    LINE_LOOP,
+    LINE_STRIP,
+    TRIANGLES,
+    TRIANGLE_STRIP,
+    TRIANGLE_FAN,
+};
+
 struct GltfMeshPrimitive
 {
     GltfMeshAttributesArray attributes;
     int32_t indices;
     int32_t material;
-    int32_t mode;
+    GltfMeshMode mode;
     // Gltf Unsupported: targets
     // Gltf Unsupported: extensions
     // Gltf Unsupported: extras

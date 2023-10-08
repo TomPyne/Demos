@@ -33,6 +33,9 @@
     <Filter Include="Source Files\ThirdParty\rapidjson">
       <UniqueIdentifier>{36050714-3b23-4ef7-a9db-b31e2c1747b2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\ThirdParty\stb">
+      <UniqueIdentifier>{bb6285a0-0634-4f23-bd44-48e0359ce861}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Render\Binding.cpp">
@@ -111,6 +114,12 @@
       <Filter>Source Files\Utils</Filter>
     </ClCompile>
     <ClCompile Include="..\Utils\Files.cpp">
+      <Filter>Source Files\Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Utils\TextureLoader.cpp">
+      <Filter>Source Files\Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Utils\DDSTextureLoader.cpp">
       <Filter>Source Files\Utils</Filter>
     </ClCompile>
   </ItemGroup>
@@ -212,6 +221,15 @@
       <Filter>Source Files\Utils</Filter>
     </ClInclude>
     <ClInclude Include="..\Utils\KeyCodes.h">
+      <Filter>Source Files\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Utils\TextureLoader.h">
+      <Filter>Source Files\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ThirdParty\stb\stb_image.h">
+      <Filter>Source Files\ThirdParty\stb</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Utils\DDSTextureLoader.h">
       <Filter>Source Files\Utils</Filter>
     </ClInclude>
   </ItemGroup>

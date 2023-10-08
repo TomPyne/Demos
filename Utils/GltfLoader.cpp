@@ -134,7 +134,6 @@ T Gltf_JsonGet(const rapidjson::Value& json, const char* name, const T& defaultV
 static bool Gltf_Parse(const rapidjson::Value& json, GltfNode* node)
 {
     CheckGltfSupport(json, "GltfNode", "camera");
-    CheckGltfSupport(json, "GltfNode", "children");
     CheckGltfSupport(json, "GltfNode", "skin");
     CheckGltfSupport(json, "GltfNode", "weights");
     CheckGltfSupport(json, "GltfNode", "extensions");
@@ -181,7 +180,7 @@ static bool Gltf_Parse(const rapidjson::Value& json, GltfMeshPrimitive* primitiv
     primitive->attributes = GltfMeshAttributes_Parse(json["attributes"]);
     primitive->indices = json.HasMember("indices") ? json["indices"].GetInt() : -1;
     primitive->material = json.HasMember("material") ? json["material"].GetInt() : -1;
-    primitive->mode = json.HasMember("mode") ? json["mode"].GetInt() : 4;
+    primitive->mode = (GltfMeshMode)Gltf_JsonGet<int>( json, "mode", (int)GltfMeshMode::TRIANGLES);
 
     return true;
 }

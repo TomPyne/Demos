@@ -7,7 +7,9 @@
 #include "Utils/GltfLoader.h"
 #include "Utils/HighResolutionClock.h"
 #include "Utils/KeyCodes.h"
+#include "Utils/Logging.h"
 #include "Utils/SurfMath.h"
+#include "Utils/TextureLoader.h"
 
 #include "ThirdParty/imgui/imgui.h"
 #include "ImGui/imgui_impl_render.h"
@@ -152,6 +154,7 @@ GraphicsPipelineState_t CreateMaterial()
 	{
 		{"POSITION", 0, RenderFormat::R32G32B32_FLOAT, 0, 0, InputClassification::PerVertex, 0 },
 		{"NORMAL", 0, RenderFormat::R32G32B32_FLOAT, 1, 0, InputClassification::PerVertex, 0 },
+		{"TEXCOORD", 0, RenderFormat::R32G32_FLOAT, 2, 0, InputClassification::PerVertex, 0 },
 	};
 
 	return CreateGraphicsPipelineState(desc, inputDesc, ARRAYSIZE(inputDesc));
@@ -163,8 +166,16 @@ GraphicsPipelineState_t CreateMaterial()
 
 struct Material
 {
-	GraphicsPipelineState_t pso;
-	std::vector<Texture_t> boundTextures;
+	GraphicsPipelineState_t pso;	
+};
+
+struct MaterialInstance
+{
+	uint32_t parentMaterial = 0;
+
+	float4 baseColorFactor = float4{1.0f};
+
+	Texture_t baseColorTexture = Texture_t::INVALID;
 };
 
 struct BindVertexBuffer
@@ -187,11 +198,13 @@ struct Mesh
 	BindVertexBuffer positionBuf;
 	BindVertexBuffer normalBuf;
 	BindVertexBuffer tangentBuf;
-	std::vector<BindVertexBuffer> texcoordBufs;
-	std::vector<BindVertexBuffer> colorBufs;
-	std::vector<BindVertexBuffer> jointBufs;
-	std::vector<BindVertexBuffer> weightBufs;
+	BindVertexBuffer texcoordBufs[4];
+	BindVertexBuffer colorBufs[4];
+	BindVertexBuffer jointBufs[4];
+	BindVertexBuffer weightBufs[4];
 	BindIndexBuffer indexBuf;
+
+	MaterialInstance material;
 };
 
 struct Model
@@ -213,13 +226,36 @@ struct GltfProcessor
 {
 	const Gltf& _gltf;
 
+	std::vector<Texture_t> textures;
+
 	explicit GltfProcessor(const Gltf& gltf) : _gltf(gltf) {}
 
 	uint32_t ProcessMesh(const GltfMeshPrimitive& prim);
 	uint32_t ProcessNode(int32_t nodeIdx, uint32_t parentIdx);
 	uint32_t ProcessMaterial(int32_t materialIdx);
+	Texture_t ProcessTexture(const GltfTextureInfo& tex);
 	void ProcessScenes();
 };
+
+Texture_t GltfProcessor::ProcessTexture(const GltfTextureInfo& texInfo)
+{
+	if (texInfo.index < textures.size() && textures[texInfo.index] != Texture_t::INVALID)
+		return textures[texInfo.index];
+
+	textures.resize(texInfo.index + 1, Texture_t::INVALID);
+
+	const GltfTexture& tex = _gltf.textures[texInfo.index];
+	const GltfImage& img = _gltf.images[tex.source];
+	const GltfBufferView& bufView = _gltf.bufferViews[img.bufferView];
+
+	if (img.mimeType == "image/png")
+	{
+		uint32_t w, h;
+		textures[texInfo.index] = TextureLoader_LoadPngTextureFromMemory((_gltf.data.get() + bufView.byteOffset), bufView.byteLength, &w, &h);
+	}
+
+	return textures[texInfo.index];
+}
 
 uint32_t GltfProcessor::ProcessMesh(const GltfMeshPrimitive& prim)
 {
@@ -228,9 +264,35 @@ uint32_t GltfProcessor::ProcessMesh(const GltfMeshPrimitive& prim)
 	Mesh& m = loadedMeshes.back();
 
 	{
+		PrimitiveTopologyType topo = PrimitiveTopologyType::Undefined;
+
+		switch (prim.mode)
+		{
+		case GltfMeshMode::POINTS:
+			topo = PrimitiveTopologyType::Point;
+			break;
+		case GltfMeshMode::LINES:
+			topo = PrimitiveTopologyType::Line;
+			break;
+		case GltfMeshMode::TRIANGLES:
+			topo = PrimitiveTopologyType::Triangle;
+			break;
+		default:
+			LOGERROR("Unsupported mesh mode %d", (int)prim.mode);
+			topo = PrimitiveTopologyType::Undefined;
+		};
+
+		const GltfMaterial& mat = _gltf.materials[prim.material];
+
+		m.material.baseColorFactor = float4{ (float)mat.pbr.baseColorFactor.x, (float)mat.pbr.baseColorFactor.y,(float)mat.pbr.baseColorFactor.z,(float)mat.pbr.baseColorFactor.w };
+		m.material.parentMaterial = 1;
+
+		m.material.baseColorTexture = mat.pbr.hasBaseColorTexture ? ProcessTexture(mat.pbr.baseColorTexture) : Texture_t::INVALID;
+	}
+
+	{
 		const GltfAccessor& accessor = _gltf.accessors[prim.indices];
 		const GltfBufferView& bufView = _gltf.bufferViews[accessor.bufferView];
-		const GltfBuffer& buf = _gltf.buffers[bufView.buffer];
 
 		const size_t offset = accessor.byteOffset + bufView.byteOffset;
 		m.indexBuf.buf = CreateIndexBuffer(_gltf.data.get() + offset, accessor.count * GltfLoader_SizeOfComponent(accessor.componentType) * GltfLoader_ComponentCount(accessor.type));
@@ -244,6 +306,7 @@ uint32_t GltfProcessor::ProcessMesh(const GltfMeshPrimitive& prim)
 		BindVertexBuffer* targetBuf = nullptr;
 		if (attr.semantic == "POSITION") targetBuf = &m.positionBuf;
 		else if (attr.semantic == "NORMAL") targetBuf = &m.normalBuf;
+		else if (attr.semantic == "TEXCOORD_0") targetBuf = &m.texcoordBufs[0];
 		else continue;
 		
 		const GltfAccessor& accessor = _gltf.accessors[attr.index];
@@ -330,6 +393,7 @@ int main()
 	loadedTextures.resize(1);
 	loadedMeshes.resize(1);
 	loadedModels.resize(1);
+	loadedMaterials.resize(1);
 
 	Gltf gltfModel;
 	if (!GltfLoader_Load("../Content/x-wing.glb", &gltfModel))
@@ -346,8 +410,9 @@ int main()
 	processor.ProcessScenes();
 
 	{
-		std::vector<SamplerDesc> samplers(1);
+		std::vector<SamplerDesc> samplers(2);
 		samplers[0].AddressModeUVW(SamplerAddressMode::Wrap).FilterModeMinMagMip(SamplerFilterMode::Point);
+		samplers[1].AddressModeUVW(SamplerAddressMode::Wrap).FilterModeMinMagMip(SamplerFilterMode::Linear);
 
 		InitSamplers(samplers.data(), samplers.size());
 	}
@@ -367,7 +432,9 @@ int main()
 
 	UpdateView(float3{ -2, 6, -2 }, 0.0f, 45.0f);
 
-	GraphicsPipelineState_t pso = CreateMaterial();
+	Material defaultMaterial;
+	defaultMaterial.pso = CreateMaterial();
+	loadedMaterials.push_back(defaultMaterial);
 
 	// Main loop
 	bool bQuit = false;
@@ -434,9 +501,6 @@ int main()
 		cl->BindPixelCBVs(0, 1, &viewBuf);
 
 		// Draw meshes
-
-		cl->SetPipelineState(pso);
-
 		for (const auto& model : loadedModels)
 		{
 			DynamicBuffer_t transformBuf = CreateDynamicConstantBuffer(&model.transform, sizeof(model.transform));
@@ -445,8 +509,30 @@ int main()
 			for (uint32_t meshId : model.meshes)
 			{
 				const Mesh& mesh = loadedMeshes[meshId];
+
+				const Material& mat = loadedMaterials[mesh.material.parentMaterial];
+
+				cl->SetPipelineState(mat.pso);
+
+				struct MaterialConstants
+				{
+					float4 albedoTint;
+					u32 useAlbedoTex = 0;
+					u32 __pad[3];
+				} matConsts;
+
+				matConsts.albedoTint = mesh.material.baseColorFactor;
+
+				matConsts.useAlbedoTex = mesh.material.baseColorTexture != Texture_t::INVALID;
+
+				DynamicBuffer_t materialBuf = CreateDynamicConstantBuffer(&matConsts, sizeof(matConsts));
+				cl->BindPixelCBVs(1, 1, &materialBuf);
+
+				cl->BindPixelTextures(0, 1, &mesh.material.baseColorTexture);
+
 				cl->SetVertexBuffers(0, 1, &mesh.positionBuf.buf, &mesh.positionBuf.stride, &mesh.positionBuf.offset);
 				cl->SetVertexBuffers(1, 1, &mesh.normalBuf.buf, &mesh.normalBuf.stride, &mesh.normalBuf.offset);
+				cl->SetVertexBuffers(2, 1, &mesh.texcoordBufs[0].buf, &mesh.texcoordBufs[0].stride, &mesh.texcoordBufs[0].offset);
 				cl->SetIndexBuffer(mesh.indexBuf.buf, mesh.indexBuf.format, mesh.indexBuf.offset);
 				cl->DrawIndexedInstanced(mesh.indexBuf.count, 1, 0, 0, 0);
 			}
