@@ -216,10 +216,9 @@ struct GltfProcessor
 	explicit GltfProcessor(const Gltf& gltf) : _gltf(gltf) {}
 
 	uint32_t ProcessMesh(const GltfMeshPrimitive& prim);
-	uint32_t ProcessNode(int32_t nodeIdx);
+	uint32_t ProcessNode(int32_t nodeIdx, uint32_t parentIdx);
 	uint32_t ProcessMaterial(int32_t materialIdx);
-
-	void Process();
+	void ProcessScenes();
 };
 
 uint32_t GltfProcessor::ProcessMesh(const GltfMeshPrimitive& prim)
@@ -259,40 +258,43 @@ uint32_t GltfProcessor::ProcessMesh(const GltfMeshPrimitive& prim)
 	return loadedMeshIdx;
 }
 
-uint32_t GltfProcessor::ProcessNode(int32_t nodeIdx)
+uint32_t GltfProcessor::ProcessNode(int32_t nodeIdx, uint32_t parentIdx)
 {
 	const GltfNode& node = _gltf.nodes[nodeIdx];
-
-	if (node.mesh < 0)
-		return 0;
-
-	const GltfMesh& mesh = _gltf.meshes[node.mesh];
-	if (mesh.primitives.empty())
-		return 0;
 
 	uint32_t modelIdx = (uint32_t)loadedModels.size();
 	loadedModels.push_back({});
 	Model& m = loadedModels.back();
 
-	{
-		m.transform = matrix((float)node.matrix.m[0], (float)node.matrix.m[4], (float)node.matrix.m[8], (float)node.matrix.m[12],
-			(float)node.matrix.m[1], (float)node.matrix.m[5], (float)node.matrix.m[9], (float)node.matrix.m[13],
-			(float)node.matrix.m[2], (float)node.matrix.m[6], (float)node.matrix.m[10], (float)node.matrix.m[14],
-			(float)node.matrix.m[3], (float)node.matrix.m[7], (float)node.matrix.m[11], (float)node.matrix.m[15]);
+	m.transform = parentIdx != 0 ? loadedModels[parentIdx].transform : MakeMatrixIdentity();
 
+	{
 		matrix translate = MakeMatrixTranslation(float3{ (float)node.translation.x, (float)node.translation.y, (float)node.translation.z });
 		matrix rotate = MakeMatrixRotationFromQuaternion(float4{ (float)node.rotation.x, (float)node.rotation.y, (float)node.rotation.z, (float)node.rotation.w });
 		matrix scale = MakeMatrixScaling((float)node.scale.x, (float)node.scale.y, (float)node.scale.z);
 
+		//matrix t = translate * rotate * scale;
 		matrix t = translate * rotate * scale;
 
 		m.transform = m.transform * t;
+
+		m.transform = m.transform * matrix((float)node.matrix.m[0], (float)node.matrix.m[4], (float)node.matrix.m[8], (float)node.matrix.m[12],
+			(float)node.matrix.m[1], (float)node.matrix.m[5], (float)node.matrix.m[9], (float)node.matrix.m[13],
+			(float)node.matrix.m[2], (float)node.matrix.m[6], (float)node.matrix.m[10], (float)node.matrix.m[14],
+			(float)node.matrix.m[3], (float)node.matrix.m[7], (float)node.matrix.m[11], (float)node.matrix.m[15]);
 	}
 
-	for (const GltfMeshPrimitive& prim : mesh.primitives)
-		m.meshes.push_back(ProcessMesh(prim));
+	if (node.mesh >= 0)
+	{
+		const GltfMesh& mesh = _gltf.meshes[node.mesh];
+		for (const GltfMeshPrimitive& prim : mesh.primitives)
+			m.meshes.push_back(ProcessMesh(prim));
+	}
 
-	return 0;
+	for (const uint32_t child : node.children)
+		ProcessNode(child, modelIdx);
+
+	return modelIdx;
 }
 
 uint32_t GltfProcessor::ProcessMaterial(int32_t materialIdx)
@@ -302,10 +304,15 @@ uint32_t GltfProcessor::ProcessMaterial(int32_t materialIdx)
 	return 0;
 }
 
-void GltfProcessor::Process()
+void GltfProcessor::ProcessScenes()
 {
-	for (int32_t nodeIt = 0; nodeIt < _gltf.nodes.size(); nodeIt++)
-		ProcessNode(nodeIt);
+	for (const GltfScene& scene : _gltf.scenes)
+	{
+		for (const uint32_t nodeIdx : scene.nodes)
+		{
+			ProcessNode(nodeIdx, 0);
+		}
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -336,7 +343,7 @@ int main()
 	}
 
 	GltfProcessor processor{gltfModel};
-	processor.Process();
+	processor.ProcessScenes();
 
 	{
 		std::vector<SamplerDesc> samplers(1);

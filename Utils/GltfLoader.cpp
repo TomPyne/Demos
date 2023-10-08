@@ -147,6 +147,13 @@ static bool Gltf_Parse(const rapidjson::Value& json, GltfNode* node)
     node->rotation =       Gltf_JsonGet<GltfVec4>(json, "rotation", GltfVec4{ 0.0, 0.0, 0.0, 1.0 });
     node->matrix =         Gltf_JsonGet<GltfMatrix>(json, "matrix");
 
+    if (json.HasMember("children"))
+    {
+        node->children.reserve(json["children"].Size());
+        for (const rapidjson::Value& v : json["children"].GetArray())
+            node->children.push_back(v.GetUint());
+    }
+
     return true;
 }
 

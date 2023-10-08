@@ -104,12 +104,9 @@ struct GltfNode
     GltfVec3 scale;
     GltfVec4 rotation;
     GltfMatrix matrix;
+    std::vector<uint32_t> children;
     // Gltf Unsupported: camera
-    // Gltf Unsupported: children
     // Gltf Unsupported: skin
-    // Gltf Unsupported: matrix
-    // Gltf Unsupported: rotation
-    // Gltf Unsupported: scale
     // Gltf Unsupported: weights
     // Gltf Unsupported: extensions
     // Gltf Unsupported: extras
