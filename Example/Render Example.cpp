@@ -5,9 +5,9 @@
 
 #include "../Render/Render.h"
 
-#include "imgui/imgui.h"
-#include "imgui_impl_win32.h"
-#include "imgui_impl_render.h"
+#include "ImGui/imgui/imgui.h"
+#include "ImGui/imgui_impl_win32.h"
+#include "ImGui/imgui_impl_render.h"
 
 LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 

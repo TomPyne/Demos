@@ -5,37 +5,36 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
-    <Filter Include="Header Files">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
-    </Filter>
     <Filter Include="Resource Files">
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
     <Filter Include="Source Files\Render">
-      <UniqueIdentifier>{0881173e-d3c7-4570-8796-5acf65a6e7c2}</UniqueIdentifier>
+      <UniqueIdentifier>{ce1a1d6e-5120-4929-bf62-45826ac9468f}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files\Render\Impl">
-      <UniqueIdentifier>{4b8605a3-35c3-4e46-8c26-2c0d025a7eb8}</UniqueIdentifier>
+      <UniqueIdentifier>{2cae08a3-3872-49a3-a5af-ff2c67aff86e}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files\Render\Impl\Dx11">
-      <UniqueIdentifier>{d3f37173-27fc-4e28-ad14-afb6df1d8e6d}</UniqueIdentifier>
+      <UniqueIdentifier>{36b726f7-38ad-4f2d-9d24-9bf12c6039b2}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\imgui">
-      <UniqueIdentifier>{9c658428-c7a4-427b-b55d-064c185dd5b0}</UniqueIdentifier>
+    <Filter Include="Source Files\ImGui">
+      <UniqueIdentifier>{2f1b3aac-f747-451a-8e5f-257f9bb703c7}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files\ThirdParty">
-      <UniqueIdentifier>{32d6071c-31cc-484a-94f6-bed0dcf63080}</UniqueIdentifier>
+      <UniqueIdentifier>{4ae71640-6891-4c91-bd76-ef977e1140f6}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files\ThirdParty\imgui">
-      <UniqueIdentifier>{421cdec1-7286-4a8d-a111-4a44f89a3dde}</UniqueIdentifier>
+      <UniqueIdentifier>{df110301-6694-4b9a-ade7-59355e18ce67}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Utils">
+      <UniqueIdentifier>{e79558e3-cbe3-4d61-b985-e5b4845d6412}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\ThirdParty\rapidjson">
+      <UniqueIdentifier>{36050714-3b23-4ef7-a9db-b31e2c1747b2}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Render Example.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\Render\Binding.cpp">
       <Filter>Source Files\Render</Filter>
     </ClCompile>
@@ -84,11 +83,14 @@
     <ClCompile Include="..\Render\Impl\Dx11\ViewImpl.cpp">
       <Filter>Source Files\Render\Impl\Dx11</Filter>
     </ClCompile>
+    <ClCompile Include="GltfViewer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\ImGui\imgui_impl_render.cpp">
-      <Filter>Source Files\imgui</Filter>
+      <Filter>Source Files\ImGui</Filter>
     </ClCompile>
     <ClCompile Include="..\ImGui\imgui_impl_win32.cpp">
-      <Filter>Source Files\imgui</Filter>
+      <Filter>Source Files\ImGui</Filter>
     </ClCompile>
     <ClCompile Include="..\ThirdParty\imgui\imgui.cpp">
       <Filter>Source Files\ThirdParty\imgui</Filter>
@@ -101,6 +103,15 @@
     </ClCompile>
     <ClCompile Include="..\ThirdParty\imgui\imgui_widgets.cpp">
       <Filter>Source Files\ThirdParty\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Utils\GltfLoader.cpp">
+      <Filter>Source Files\Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Utils\Logging.cpp">
+      <Filter>Source Files\Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Utils\Files.cpp">
+      <Filter>Source Files\Utils</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -159,10 +170,10 @@
       <Filter>Source Files\Render\Impl\Dx11</Filter>
     </ClInclude>
     <ClInclude Include="..\ImGui\imgui_impl_render.h">
-      <Filter>Source Files\imgui</Filter>
+      <Filter>Source Files\ImGui</Filter>
     </ClInclude>
     <ClInclude Include="..\ImGui\imgui_impl_win32.h">
-      <Filter>Source Files\imgui</Filter>
+      <Filter>Source Files\ImGui</Filter>
     </ClInclude>
     <ClInclude Include="..\ThirdParty\imgui\imconfig.h">
       <Filter>Source Files\ThirdParty\imgui</Filter>
@@ -181,6 +192,27 @@
     </ClInclude>
     <ClInclude Include="..\ThirdParty\imgui\imstb_truetype.h">
       <Filter>Source Files\ThirdParty\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Utils\GltfLoader.h">
+      <Filter>Source Files\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Utils\Logging.h">
+      <Filter>Source Files\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ThirdParty\rapidjson\rapidjson.h">
+      <Filter>Source Files\ThirdParty\rapidjson</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Utils\Files.h">
+      <Filter>Source Files\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Utils\SurfMath.h">
+      <Filter>Source Files\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Utils\HighResolutionClock.h">
+      <Filter>Source Files\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Utils\KeyCodes.h">
+      <Filter>Source Files\Utils</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

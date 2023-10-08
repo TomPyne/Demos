@@ -1,5 +1,7 @@
-// dear imgui: Renderer for Icarus
+// dear imgui: Renderer
 // This needs to be used along with a Platform Binding (e.g. Win32)
+
+#include "ThirdParty/imgui/imgui.h"
 
 #pragma once
 

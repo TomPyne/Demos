@@ -2,7 +2,7 @@
 <Project>
   <ProjectOutputs>
     <ProjectOutput>
-      <FullPath>D:\Git\Demos\x64\Debug\Render Example.exe</FullPath>
+      <FullPath>D:\Git\Demos\Gltf Viewer.exe</FullPath>
     </ProjectOutput>
   </ProjectOutputs>
   <ContentFiles />
