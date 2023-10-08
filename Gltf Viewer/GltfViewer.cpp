@@ -224,7 +224,7 @@ struct GltfProcessor
 
 uint32_t GltfProcessor::ProcessMesh(const GltfMeshPrimitive& prim)
 {
-	uint32_t loadedMeshIdx = loadedMeshes.size();
+	uint32_t loadedMeshIdx = (uint32_t)loadedMeshes.size();
 	loadedMeshes.push_back({});
 	Mesh& m = loadedMeshes.back();
 
@@ -270,9 +270,24 @@ uint32_t GltfProcessor::ProcessNode(int32_t nodeIdx)
 	if (mesh.primitives.empty())
 		return 0;
 
-	uint32_t modelIdx = loadedModels.size();
+	uint32_t modelIdx = (uint32_t)loadedModels.size();
 	loadedModels.push_back({});
 	Model& m = loadedModels.back();
+
+	{
+		m.transform = matrix((float)node.matrix.m[0], (float)node.matrix.m[4], (float)node.matrix.m[8], (float)node.matrix.m[12],
+			(float)node.matrix.m[1], (float)node.matrix.m[5], (float)node.matrix.m[9], (float)node.matrix.m[13],
+			(float)node.matrix.m[2], (float)node.matrix.m[6], (float)node.matrix.m[10], (float)node.matrix.m[14],
+			(float)node.matrix.m[3], (float)node.matrix.m[7], (float)node.matrix.m[11], (float)node.matrix.m[15]);
+
+		matrix translate = MakeMatrixTranslation(float3{ (float)node.translation.x, (float)node.translation.y, (float)node.translation.z });
+		matrix rotate = MakeMatrixRotationFromQuaternion(float4{ (float)node.rotation.x, (float)node.rotation.y, (float)node.rotation.z, (float)node.rotation.w });
+		matrix scale = MakeMatrixScaling((float)node.scale.x, (float)node.scale.y, (float)node.scale.z);
+
+		matrix t = translate * rotate * scale;
+
+		m.transform = m.transform * t;
+	}
 
 	for (const GltfMeshPrimitive& prim : mesh.primitives)
 		m.meshes.push_back(ProcessMesh(prim));
@@ -415,20 +430,20 @@ int main()
 
 		cl->SetPipelineState(pso);
 
-		for (const auto& mesh : loadedMeshes)
+		for (const auto& model : loadedModels)
 		{
-			cl->SetVertexBuffers(0, 1, &mesh.positionBuf.buf, &mesh.positionBuf.stride, &mesh.positionBuf.offset);
-			cl->SetVertexBuffers(1, 1, &mesh.normalBuf.buf, &mesh.normalBuf.stride, &mesh.normalBuf.offset);
-			cl->SetIndexBuffer(mesh.indexBuf.buf, mesh.indexBuf.format, mesh.indexBuf.offset);
-
-			matrix transform = MakeMatrixIdentity();
-
-			DynamicBuffer_t transformBuf = CreateDynamicConstantBuffer(&transform, sizeof(transform));
-
+			DynamicBuffer_t transformBuf = CreateDynamicConstantBuffer(&model.transform, sizeof(model.transform));
 			cl->BindVertexCBVs(1, 1, &transformBuf);
 
-			cl->DrawIndexedInstanced(mesh.indexBuf.count, 1, 0, 0, 0);
-		}		
+			for (uint32_t meshId : model.meshes)
+			{
+				const Mesh& mesh = loadedMeshes[meshId];
+				cl->SetVertexBuffers(0, 1, &mesh.positionBuf.buf, &mesh.positionBuf.stride, &mesh.positionBuf.offset);
+				cl->SetVertexBuffers(1, 1, &mesh.normalBuf.buf, &mesh.normalBuf.stride, &mesh.normalBuf.offset);
+				cl->SetIndexBuffer(mesh.indexBuf.buf, mesh.indexBuf.format, mesh.indexBuf.offset);
+				cl->DrawIndexedInstanced(mesh.indexBuf.count, 1, 0, 0, 0);
+			}
+		}
 
 		ImGui_ImplRender_RenderDrawData(ImGui::GetDrawData(), cl.get());
 

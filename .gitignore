@@ -32,7 +32,6 @@
 *.app
 *.vsidx
 *.lock
-Example/.vs/Render Example/v17/.suo
 *.opendb
 *.db-wal
 *.db-shm
@@ -44,4 +43,5 @@ Example/.vs/Render Example/v17/.suo
 *.pdb
 *.tlog
 *.idb
-Example/imgui.ini
+.vs
+imgui.ini

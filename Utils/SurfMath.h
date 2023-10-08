@@ -3,6 +3,8 @@
 #include <assert.h>
 #include <memory>
 
+#include <DirectXMath.h>
+
 typedef uint32_t u32;
 typedef int32_t i32;
 typedef uint16_t u16;
@@ -363,6 +365,16 @@ struct matrix
         , _21(r1.x), _22(r1.y), _23(r1.z), _24(r1.w)
         , _31(r2.x), _32(r2.y), _33(r2.z), _34(r2.w)
         , _41(r3.x), _42(r3.y), _43(r3.z), _44(r3.w)
+    {}
+
+    constexpr matrix(   float __11, float __12, float __13, float __14,
+                        float __21, float __22, float __23, float __24,
+                        float __31, float __32, float __33, float __34,
+                        float __41, float __42, float __43, float __44 )
+        : _11(__11), _12(__12), _13(__13), _14(__14)
+        , _21(__21), _22(__22), _23(__23), _24(__24)
+        , _31(__31), _32(__32), _33(__33), _34(__34)
+        , _41(__41), _42(__42), _43(__43), _44(__44)
     {}
 };
 
@@ -802,6 +814,38 @@ inline matrix MakeMatrixRotationFromVector(float3 v) noexcept
     m.m[3][3] = 1.0f;
 
     return m;
+}
+
+inline matrix MakeMatrixRotationFromQuaternion(float4 quaternion)
+{
+    float4 q0 = quaternion + quaternion;
+    float4 q1 = quaternion * q0;
+
+    float4 v0 = float4{ q1.y, q1.x, q1.x, 0.0f };
+    float4 v1 = float4{ q1.z, q1.z, q1.y, 0.0f };
+    float4 r0 = float4{ 1.0f, 1.0f, 1.0f, 0.0f } - v0;
+    r0 -= v1;
+
+    v0 = float4{ quaternion.x, quaternion.x, quaternion.y, quaternion.w };
+    v1 = float4{ q0.z, q0.y, q0.z, q0.w };
+    v0 *= v1;
+
+    v1 = float4{ quaternion.w };
+    float4 v2 = float4{ q0.y, q0.z, q0.x, q0.w };
+    v1 *= v2;
+
+    float4 r1 = v0 + v1;
+    float4 r2 = v0 - v1;
+
+    v0 = float4{ r1.y, r2.x, r2.y, r1.z };
+    v1 = float4{ r1.x, r2.z, r1.x, r2.z };
+
+    return matrix{
+        float4{r0.x, v0.x, v0.y, r0.w},
+        float4{v0.z, r0.y, v0.w, r0.w},
+        float4{v1.x, v1.y, r0.z, r0.w},
+        float4{0.0f, 0.0f, 0.0f, 1.0f}
+    };
 }
 
 inline constexpr matrix TransposeMatrix(matrix m) noexcept
