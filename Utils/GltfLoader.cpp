@@ -213,6 +213,20 @@ static bool GltfTextureInfo_Parse(const rapidjson::Value& json, GltfTextureInfo*
     return true;
 }
 
+static bool GltfNormalTextureInfo_Parse(const rapidjson::Value& json, GltfNormalTextureInfo* textureInfo)
+{
+    if (!EnsureHas(json, "GltfNormalTextureInfo", "index")) return false;
+
+    CheckGltfSupport(json, "GltfNormalTextureInfo", "scale");
+    CheckGltfSupport(json, "GltfNormalTextureInfo", "extensions");
+    CheckGltfSupport(json, "GltfNormalTextureInfo", "extras");
+
+    textureInfo->index = json["index"].GetInt();
+    textureInfo->texcoord = json.HasMember("texCoord") ? json["texCoord"].GetInt() : -1;
+
+    return true;
+}
+
 static GltfPbrMetallicRoughness GltfPbrMetallicRoughness_Default()
 {
     GltfPbrMetallicRoughness pbr;
@@ -235,14 +249,14 @@ static GltfPbrMetallicRoughness GltfPbrMetallicRoughness_Parse(const rapidjson::
 
     pbr.baseColorFactor = Gltf_JsonGet(json, "baseColorFactor", GltfVec4(1.0, 1.0, 1.0, 1.0));
     pbr.hasBaseColorTexture = json.HasMember("baseColorTexture");
-    if (pbr.hasBaseColorTexture) GltfTextureInfo_Parse(json["baseColorTexture"], &pbr.baseColorTexture);
+    if (pbr.hasBaseColorTexture) 
+        pbr.hasBaseColorTexture = GltfTextureInfo_Parse(json["baseColorTexture"], &pbr.baseColorTexture);
 
     return pbr;
 }
 
 static bool Gltf_Parse(const rapidjson::Value& json, GltfMaterial* material)
 {
-    CheckGltfSupport(json, "GltfMaterial", "normalTexture");
     CheckGltfSupport(json, "GltfMaterial", "occlusionTexture");
     CheckGltfSupport(json, "GltfMaterial", "emissiveTexture");
     CheckGltfSupport(json, "GltfMaterial", "emissiveFactor");
@@ -254,6 +268,9 @@ static bool Gltf_Parse(const rapidjson::Value& json, GltfMaterial* material)
 
     material->name = json.HasMember("name") ? json["name"].GetString() : "";    
     material->pbr = json.HasMember("pbrMetallicRoughness") ? GltfPbrMetallicRoughness_Parse(json["pbrMetallicRoughness"]) : GltfPbrMetallicRoughness_Default();
+    material->hasNormalTexture = json.HasMember("normalTexture");
+    if (material->hasNormalTexture)
+        material->hasNormalTexture = GltfNormalTextureInfo_Parse(json["normalTexture"], &material->normalTexture);
 
     return true;
 }

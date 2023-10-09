@@ -154,7 +154,8 @@ GraphicsPipelineState_t CreateMaterial()
 	{
 		{"POSITION", 0, RenderFormat::R32G32B32_FLOAT, 0, 0, InputClassification::PerVertex, 0 },
 		{"NORMAL", 0, RenderFormat::R32G32B32_FLOAT, 1, 0, InputClassification::PerVertex, 0 },
-		{"TEXCOORD", 0, RenderFormat::R32G32_FLOAT, 2, 0, InputClassification::PerVertex, 0 },
+		{"TANGENT", 0, RenderFormat::R32G32B32A32_FLOAT, 2, 0, InputClassification::PerVertex, 0 },
+		{"TEXCOORD", 0, RenderFormat::R32G32_FLOAT, 3, 0, InputClassification::PerVertex, 0 },
 	};
 
 	return CreateGraphicsPipelineState(desc, inputDesc, ARRAYSIZE(inputDesc));
@@ -176,6 +177,7 @@ struct MaterialInstance
 	float4 baseColorFactor = float4{1.0f};
 
 	Texture_t baseColorTexture = Texture_t::INVALID;
+	Texture_t normalTexture = Texture_t::INVALID;
 };
 
 struct BindVertexBuffer
@@ -234,10 +236,31 @@ struct GltfProcessor
 	uint32_t ProcessNode(int32_t nodeIdx, uint32_t parentIdx);
 	uint32_t ProcessMaterial(int32_t materialIdx);
 	Texture_t ProcessTexture(const GltfTextureInfo& tex);
+	Texture_t ProcessNormalTexture(const GltfNormalTextureInfo& tex);
 	void ProcessScenes();
 };
 
 Texture_t GltfProcessor::ProcessTexture(const GltfTextureInfo& texInfo)
+{
+	if (texInfo.index < textures.size() && textures[texInfo.index] != Texture_t::INVALID)
+		return textures[texInfo.index];
+
+	textures.resize(texInfo.index + 1, Texture_t::INVALID);
+
+	const GltfTexture& tex = _gltf.textures[texInfo.index];
+	const GltfImage& img = _gltf.images[tex.source];
+	const GltfBufferView& bufView = _gltf.bufferViews[img.bufferView];
+
+	if (img.mimeType == "image/png")
+	{
+		uint32_t w, h;
+		textures[texInfo.index] = TextureLoader_LoadPngTextureFromMemory((_gltf.data.get() + bufView.byteOffset), bufView.byteLength, &w, &h);
+	}
+
+	return textures[texInfo.index];
+}
+
+Texture_t GltfProcessor::ProcessNormalTexture(const GltfNormalTextureInfo& texInfo)
 {
 	if (texInfo.index < textures.size() && textures[texInfo.index] != Texture_t::INVALID)
 		return textures[texInfo.index];
@@ -288,6 +311,7 @@ uint32_t GltfProcessor::ProcessMesh(const GltfMeshPrimitive& prim)
 		m.material.parentMaterial = 1;
 
 		m.material.baseColorTexture = mat.pbr.hasBaseColorTexture ? ProcessTexture(mat.pbr.baseColorTexture) : Texture_t::INVALID;
+		m.material.normalTexture = mat.hasNormalTexture ? ProcessNormalTexture(mat.normalTexture) : Texture_t::INVALID;
 	}
 
 	{
@@ -306,8 +330,12 @@ uint32_t GltfProcessor::ProcessMesh(const GltfMeshPrimitive& prim)
 		BindVertexBuffer* targetBuf = nullptr;
 		if (attr.semantic == "POSITION") targetBuf = &m.positionBuf;
 		else if (attr.semantic == "NORMAL") targetBuf = &m.normalBuf;
+		else if (attr.semantic == "TANGENT") targetBuf = &m.tangentBuf;
 		else if (attr.semantic == "TEXCOORD_0") targetBuf = &m.texcoordBufs[0];
-		else continue;
+		else
+		{
+			LOGWARNING("Unsupported buffer in ProcessMesh %s", attr.semantic.c_str());
+		}
 		
 		const GltfAccessor& accessor = _gltf.accessors[attr.index];
 		const GltfBufferView& bufView = _gltf.bufferViews[accessor.bufferView];
@@ -518,21 +546,25 @@ int main()
 				{
 					float4 albedoTint;
 					u32 useAlbedoTex = 0;
-					u32 __pad[3];
+					u32 useNormalTex = 0;
+					u32 __pad[2];
 				} matConsts;
 
 				matConsts.albedoTint = mesh.material.baseColorFactor;
 
 				matConsts.useAlbedoTex = mesh.material.baseColorTexture != Texture_t::INVALID;
+				matConsts.useNormalTex = mesh.material.normalTexture != Texture_t::INVALID;
 
 				DynamicBuffer_t materialBuf = CreateDynamicConstantBuffer(&matConsts, sizeof(matConsts));
 				cl->BindPixelCBVs(1, 1, &materialBuf);
 
 				cl->BindPixelTextures(0, 1, &mesh.material.baseColorTexture);
+				cl->BindPixelTextures(1, 1, &mesh.material.normalTexture);
 
 				cl->SetVertexBuffers(0, 1, &mesh.positionBuf.buf, &mesh.positionBuf.stride, &mesh.positionBuf.offset);
 				cl->SetVertexBuffers(1, 1, &mesh.normalBuf.buf, &mesh.normalBuf.stride, &mesh.normalBuf.offset);
-				cl->SetVertexBuffers(2, 1, &mesh.texcoordBufs[0].buf, &mesh.texcoordBufs[0].stride, &mesh.texcoordBufs[0].offset);
+				cl->SetVertexBuffers(2, 1, &mesh.tangentBuf.buf, &mesh.tangentBuf.stride, &mesh.tangentBuf.offset);
+				cl->SetVertexBuffers(3, 1, &mesh.texcoordBufs[0].buf, &mesh.texcoordBufs[0].stride, &mesh.texcoordBufs[0].offset);				
 				cl->SetIndexBuffer(mesh.indexBuf.buf, mesh.indexBuf.format, mesh.indexBuf.offset);
 				cl->DrawIndexedInstanced(mesh.indexBuf.count, 1, 0, 0, 0);
 			}

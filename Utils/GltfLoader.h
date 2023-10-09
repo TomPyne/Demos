@@ -173,11 +173,19 @@ struct GltfPbrMetallicRoughness
     // Gltf Unsupported: extras
 };
 
+struct GltfNormalTextureInfo
+{
+    uint32_t index;
+    int32_t texcoord;
+    // Gltf Unsupported: scale
+};
+
 struct GltfMaterial
 {
     std::string name;
     GltfPbrMetallicRoughness pbr;
-    // Gltf Unsupported: normalTexture
+    bool hasNormalTexture;
+    GltfNormalTextureInfo normalTexture;
     // Gltf Unsupported: occlusionTexture
     // Gltf Unsupported: emissiveTexture
     // Gltf Unsupported: emissiveFactor
