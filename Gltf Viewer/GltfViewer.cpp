@@ -359,21 +359,10 @@ uint32_t GltfProcessor::ProcessNode(int32_t nodeIdx, uint32_t parentIdx)
 
 	m.transform = parentIdx != 0 ? loadedModels[parentIdx].transform : MakeMatrixIdentity();
 
-	{
-		matrix translate = MakeMatrixTranslation(float3{ (float)node.translation.x, (float)node.translation.y, (float)node.translation.z });
-		matrix rotate = MakeMatrixRotationFromQuaternion(float4{ (float)node.rotation.x, (float)node.rotation.y, (float)node.rotation.z, (float)node.rotation.w });
-		matrix scale = MakeMatrixScaling((float)node.scale.x, (float)node.scale.y, (float)node.scale.z);
-
-		//matrix t = translate * rotate * scale;
-		matrix t = translate * rotate * scale;
-
-		m.transform = m.transform * t;
-
-		m.transform = m.transform * matrix((float)node.matrix.m[0], (float)node.matrix.m[4], (float)node.matrix.m[8], (float)node.matrix.m[12],
-			(float)node.matrix.m[1], (float)node.matrix.m[5], (float)node.matrix.m[9], (float)node.matrix.m[13],
-			(float)node.matrix.m[2], (float)node.matrix.m[6], (float)node.matrix.m[10], (float)node.matrix.m[14],
-			(float)node.matrix.m[3], (float)node.matrix.m[7], (float)node.matrix.m[11], (float)node.matrix.m[15]);
-	}
+	m.transform = m.transform * (matrix((float)node.matrix.m[0], (float)node.matrix.m[4], (float)node.matrix.m[8], (float)node.matrix.m[12],
+		(float)node.matrix.m[1], (float)node.matrix.m[5], (float)node.matrix.m[9], (float)node.matrix.m[13],
+		(float)node.matrix.m[2], (float)node.matrix.m[6], (float)node.matrix.m[10], (float)node.matrix.m[14],
+		(float)node.matrix.m[3], (float)node.matrix.m[7], (float)node.matrix.m[11], (float)node.matrix.m[15]));
 
 	if (node.mesh >= 0)
 	{

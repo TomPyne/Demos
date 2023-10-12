@@ -3,8 +3,6 @@
 #include <assert.h>
 #include <memory>
 
-#include <DirectXMath.h>
-
 typedef uint32_t u32;
 typedef int32_t i32;
 typedef uint16_t u16;

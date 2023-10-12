@@ -141,10 +141,57 @@ static bool Gltf_Parse(const rapidjson::Value& json, GltfNode* node)
 
     node->name =           Gltf_JsonGet<std::string>(json, "name");
     node->mesh =           Gltf_JsonGet<int>(json, "mesh", -1);
-    node->translation =    Gltf_JsonGet<GltfVec3>(json, "translation");
-    node->scale =          Gltf_JsonGet<GltfVec3>(json, "scale", GltfVec3{ 1.0, 1.0, 1.0 });
-    node->rotation =       Gltf_JsonGet<GltfVec4>(json, "rotation", GltfVec4{ 0.0, 0.0, 0.0, 1.0 });
-    node->matrix =         Gltf_JsonGet<GltfMatrix>(json, "matrix");
+
+    if (json.HasMember("matrix"))
+    {
+        node->matrix = Gltf_JsonGet<GltfMatrix>(json, "matrix");
+    }
+    else
+    {
+        GltfVec3 translation = Gltf_JsonGet<GltfVec3>(json, "translation", GltfVec3{0, 0, 0});
+        GltfVec3 scale = Gltf_JsonGet<GltfVec3>(json, "scale", GltfVec3{ 1, 1, 1 });
+        GltfVec4 rotation = Gltf_JsonGet<GltfVec4>(json, "rotation", GltfVec4{ 0.0, 0.0, 0.0, 1.0 });
+
+        const double x = rotation.x;
+        const double y = rotation.y;
+        const double z = rotation.z;
+        const double w = rotation.w;
+
+        const double x2 = x + x;
+        const double y2 = y + y;
+        const double z2 = z + z;
+
+        const double xx = x * x2;
+        const double xy = x * y2;
+        const double xz = x * z2;
+        const double yy = y * y2;
+        const double yz = y * z2;
+        const double zz = z * z2;
+        const double wx = w * x2;
+        const double wy = w * y2;
+        const double wz = w * z2;
+        const double sx = scale.x;
+        const double sy = scale.y;
+        const double sz = scale.z;
+
+        node->matrix.m[0] = (1 - (yy + zz)) * sx;
+        node->matrix.m[1] = (xy + wz) * sx;
+        node->matrix.m[2] = (xz - wy) * sx;
+        node->matrix.m[3] = 0;
+        node->matrix.m[4] = (xy - wz) * sy;
+        node->matrix.m[5] = (1 - (xx + zz)) * sy;
+        node->matrix.m[6] = (yz + wx) * sy;
+        node->matrix.m[7] = 0;
+        node->matrix.m[8] = (xz + wy) * sz;
+        node->matrix.m[9] = (yz - wx) * sz;
+        node->matrix.m[10] = (1 - (xx + yy)) * sz;
+        node->matrix.m[11] = 0;
+        node->matrix.m[12] = translation.x;
+        node->matrix.m[13] = translation.y;
+        node->matrix.m[14] = translation.z;
+        node->matrix.m[15] = 1;
+    }
+    
 
     if (json.HasMember("children"))
     {
