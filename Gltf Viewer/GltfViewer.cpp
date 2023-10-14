@@ -43,8 +43,8 @@ struct
 struct
 {
 	float2 sunPitchYaw = float2{70.0f, 0.0f};
-	float3 radiance = float3{1.0f};
-	float3 ambient = float3{0.05f, 0.05f, 0.1f};
+	float3 radiance = float3{5.0f};
+	float3 ambient = float3{0.02f, 0.02f, 0.04f};
 } lightData;
 
 static void ResizeTargets(u32 w, u32 h)
@@ -436,8 +436,14 @@ void DrawUI()
 
 LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
-int main()
+int main(int argc, char* argv[])
 {
+	if (argc < 2)
+	{
+		LOGERROR("Requires a path");
+		return 1;
+	}
+
 	WNDCLASSEX wc = { sizeof(WNDCLASSEX), CS_CLASSDC, WndProc, 0L, 0L, GetModuleHandle(NULL), NULL, NULL, NULL, NULL, L"Render Example", NULL };
 	::RegisterClassEx(&wc);
 	HWND hwnd = ::CreateWindow(wc.lpszClassName, L"Render Example", WS_OVERLAPPEDWINDOW, 100, 100, 1280, 800, NULL, NULL, wc.hInstance, NULL);
@@ -448,7 +454,7 @@ int main()
 	loadedMaterials.resize(1);
 
 	Gltf gltfModel;
-	if (!GltfLoader_Load("../Content/x-wing.glb", &gltfModel))
+	if (!GltfLoader_Load(argv[1], &gltfModel))
 		return 1;
 
 	if (!Render_Init())

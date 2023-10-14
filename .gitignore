@@ -45,3 +45,4 @@
 *.idb
 .vs
 imgui.ini
+Gltf Viewer/Gltf Viewer.args.json

@@ -17,6 +17,7 @@ struct PS_INPUT
     float3 normal : NORMAL;
     float3 tangent : TANGENT; // W component is handedness
     float2 texcoord : TEXCOORD0;
+    float3 worldPos : WORLDPOS;
 };
 
 #ifdef _VS
@@ -37,10 +38,10 @@ struct VS_INPUT
 PS_INPUT main(VS_INPUT input)
 {
     PS_INPUT output;
-
     float4 worldPos = mul(TransformMatrix, float4(input.pos.xyz, 1.f));
-
-    output.pos = mul( ViewProjectionMatrix, worldPos);
+    
+    output.pos = mul( ViewProjectionMatrix, worldPos );
+    output.worldPos = worldPos.xyz;
     output.normal = normalize(mul(TransformMatrix, float4(input.normal, 0.0f))).xyz;
     output.tangent = normalize(mul(TransformMatrix, float4(input.tangent.xyz, 0.0f))).xyz;
     output.texcoord = input.texcoord;
@@ -69,6 +70,57 @@ SamplerState TrilinearSamp : register(s1);
 Texture2D<float4> AlbedoTexture : register(t0);
 Texture2D<float4> NormalTexture : register(t1);
 Texture2D<float4> MetallicRoughnessTexture : register(t2);
+
+static const float M_PI = 3.14159265359;
+
+float3 F_Schlick(float3 f0, float VdotH)
+{
+    return f0 + (float3(1.0f, 1.0f, 1.0f) - f0) * pow(clamp(1.0 - VdotH, 0.0, 1.0), 5.0);
+}
+
+// Smith Joint GGX
+// Note: Vis = G / (4 * NdotL * NdotV)
+// see Eric Heitz. 2014. Understanding the Masking-Shadowing Function in Microfacet-Based BRDFs. Journal of Computer Graphics Techniques, 3
+// see Real-Time Rendering. Page 331 to 336.
+// see https://google.github.io/filament/Filament.md.html#materialsystem/specularbrdf/geometricshadowing(specularg)
+float V_GGX(float NdotL, float NdotV, float alphaRoughness)
+{
+    float alphaRoughnessSq = alphaRoughness * alphaRoughness;
+
+    float GGXV = NdotL * sqrt(NdotV * NdotV * (1.0 - alphaRoughnessSq) + alphaRoughnessSq);
+    float GGXL = NdotV * sqrt(NdotL * NdotL * (1.0 - alphaRoughnessSq) + alphaRoughnessSq);
+
+    float GGX = GGXV + GGXL;
+    if (GGX > 0.0)
+    {
+        return 0.5 / GGX;
+    }
+    return 0.0;
+}
+
+// The following equation(s) model the distribution of microfacet normals across the area being drawn (aka D())
+// Implementation from "Average Irregularity Representation of a Roughened Surface for Ray Reflection" by T. S. Trowbridge, and K. P. Reitz
+// Follows the distribution function recommended in the SIGGRAPH 2013 course notes from EPIC Games [1], Equation 3.
+float D_GGX(float NdotH, float alphaRoughness)
+{
+    float alphaRoughnessSq = alphaRoughness * alphaRoughness;
+    float f = (NdotH * NdotH) * (alphaRoughnessSq - 1.0) + 1.0;
+    return alphaRoughnessSq / (M_PI * f * f);
+}
+
+float3 SpecularBrdf(float3 f0, float alphaRoughness, float specWeight, float vdh, float ndl, float ndv, float ndh)
+{
+    float3 F = F_Schlick(f0, vdh);
+    float Vis = V_GGX(ndl, ndv, alphaRoughness);
+    float D = D_GGX(ndh, alphaRoughness);
+
+    return specWeight * F * Vis * D;
+}
+
+float3 DiffuseBrdf(float3 f, float3 diffuse)
+{
+    return (float3(1.0f, 1.0f, 1.0f) - f) * (1.0f - M_PI) * diffuse;
+}
 
 float4 main(PS_INPUT input) : SV_Target0
 {
@@ -102,12 +154,33 @@ float4 main(PS_INPUT input) : SV_Target0
     }
 
     normal = normalize(mul(normal, tangentMatrix));
+
+    float3 spec = 0;
+    float3 diff = 0;
     
-    float3 n = normalize(normal);
+    const float3 n = normalize(normal);
+    const float3 v = -normalize(input.worldPos - CamPos);
+    const float3 l = -LightDir;
+    const float3 h = normalize(l + v);
 
-    float ndl = saturate(dot(n, -LightDir));
+    const float vdh = saturate(dot(v, h));
+    const float ndl = saturate(dot(n, l));
+    const float ndv = saturate(dot(n, v));
+    const float ndh = saturate(dot(n, h));
 
-    return float4(ndl * col.rgb * LightRadiance + (0.1 * col.rgb * LightAmbient), 1); 
+    static const float3 black = 0.0f;
+    static const float3 f0Dielectric = 0.04f;
+
+    if(ndl > 0 || ndv > 0)
+    {
+        const float3 f0 = lerp(f0Dielectric, col, metallic);
+        const float3 adjustedRadiance = LightRadiance * ndl;
+
+        spec += adjustedRadiance * SpecularBrdf(f0, roughness, 1.0f, vdh, ndl, ndv, ndh);
+        diff += adjustedRadiance * DiffuseBrdf(f0, lerp(col, black, metallic));
+    }
+
+    return float4(diff + spec + LightAmbient, 1); 
 };
 
 #endif
