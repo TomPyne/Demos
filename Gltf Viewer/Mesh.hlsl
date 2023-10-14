@@ -5,6 +5,10 @@ cbuffer viewBuf : register(b0)
     float pad0;
     float3 LightDir;
     float pad1;
+    float3 LightRadiance;
+    float pad2;
+    float3 LightAmbient;
+    float3 pad3;
 };
 
 struct PS_INPUT
@@ -95,8 +99,6 @@ float4 main(PS_INPUT input) : SV_Target0
         float2 metallicRoughnessSample = MetallicRoughnessTexture.Sample(TrilinearSamp, input.texcoord).rg;
         metallic = metallicRoughnessSample.x * c_metallicFactor;
         roughness = metallicRoughnessSample.y * c_roughnessFactor;
-
-        col.rgb = float3(metallicRoughnessSample, 0);
     }
 
     normal = normalize(mul(normal, tangentMatrix));
@@ -105,7 +107,7 @@ float4 main(PS_INPUT input) : SV_Target0
 
     float ndl = saturate(dot(n, -LightDir));
 
-    return float4(ndl * col.rgb + (0.1 * col.rgb), 1); 
+    return float4(ndl * col.rgb * LightRadiance + (0.1 * col.rgb * LightAmbient), 1); 
 };
 
 #endif

@@ -40,6 +40,13 @@ struct
 	matrix view;
 } viewData;
 
+struct
+{
+	float2 sunPitchYaw = float2{70.0f, 0.0f};
+	float3 radiance = float3{1.0f};
+	float3 ambient = float3{0.05f, 0.05f, 0.1f};
+} lightData;
+
 static void ResizeTargets(u32 w, u32 h)
 {
 	w = Max(w, 1u);
@@ -403,6 +410,27 @@ void GltfProcessor::ProcessScenes()
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+// UI
+///////////////////////////////////////////////////////////////////////////////
+
+void DrawUI()
+{
+	if (!ImGui::Begin("Gltf Viewer"))
+	{
+		// Early out if the window is collapsed, as an optimization.
+		ImGui::End();
+		return;
+	}
+
+	ImGui::SliderFloat("Sun Pitch", &lightData.sunPitchYaw.x, -90.0f, 90.0f);
+	ImGui::SliderFloat("Sun Yaw", &lightData.sunPitchYaw.y, -180.0f, 180.0f);
+	ImGui::DragFloat3("Radiance", lightData.radiance.v);
+	ImGui::DragFloat3("Ambient", lightData.ambient.v);
+
+	ImGui::End();
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // Main
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -478,12 +506,16 @@ int main()
 
 		CameraUpdate(delta);
 
-		ImGui_ImplRender_NewFrame();
-		ImGui_ImplWin32_NewFrame();
+		{
+			ImGui_ImplRender_NewFrame();
+			ImGui_ImplWin32_NewFrame();
 
-		ImGui::NewFrame();
-		ImGui::ShowDemoWindow();
-		ImGui::Render();
+			ImGui::NewFrame();
+
+			DrawUI();
+
+			ImGui::Render();
+		}
 
 		Render_NewFrame();
 		CommandListPtr cl = CommandList::Create();
@@ -516,11 +548,22 @@ int main()
 			float pad0;
 			float3 lightDir;
 			float pad1;
+			float3 lightRadiance;
+			float pad2;
+			float3 lightAmbient;
+			float pad3;
 		} viewBufData;
 
 		viewBufData.viewProjMat = viewData.view * screenData.projection;
 		viewBufData.camPos = viewData.position;
-		viewBufData.lightDir = NormalizeF3(float3{ 0.2f, -1.0f, 0.2f });
+
+		const float pitchRad = ConvertToRadians(lightData.sunPitchYaw.x);
+		const float yawRad = ConvertToRadians(lightData.sunPitchYaw.y);
+
+		viewBufData.lightDir = NormalizeF3(float3{ sinf(yawRad), sinf(-pitchRad), cosf(yawRad) });
+		viewBufData.lightRadiance = lightData.radiance;
+		viewBufData.lightAmbient = lightData.ambient;
+
 
 		DynamicBuffer_t viewBuf = CreateDynamicConstantBuffer(&viewBufData, sizeof(viewBufData));
 
