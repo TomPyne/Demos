@@ -166,9 +166,10 @@ struct GltfPbrMetallicRoughness
     GltfVec4 baseColorFactor;
     bool hasBaseColorTexture;
     GltfTextureInfo baseColorTexture;
-    // Gltf Unsupported: metallicFactor
-    // Gltf Unsupported: roughnessFactor
-    // Gltf Unsupported: metallicRoughnessTexture
+    float metallicFactor;
+    float roughnessFactor;
+    bool hasMetallicRoughnessTexture;
+    GltfTextureInfo metallicRoughnessTexture;
     // Gltf Unsupported: extensions
     // Gltf Unsupported: extras
 };

@@ -1,3 +1,12 @@
+cbuffer viewBuf : register(b0)
+{
+    float4x4 ViewProjectionMatrix;
+    float3 CamPos;
+    float pad0;
+    float3 LightDir;
+    float pad1;
+};
+
 struct PS_INPUT
 {
     float4 pos : SV_POSITION;
@@ -7,11 +16,6 @@ struct PS_INPUT
 };
 
 #ifdef _VS
-
-cbuffer viewBuf : register(b0)
-{
-    float4x4 ViewProjectionMatrix;
-};
 
 cbuffer transformBuf : register(b1)
 {
@@ -46,8 +50,13 @@ PS_INPUT main(VS_INPUT input)
 cbuffer MaterialBuf : register(b1)
 {
     float4 c_albedoTint;
+
+    float c_metallicFactor;
+    float c_roughnessFactor;
     uint c_useAlbedoTex;
     uint c_useNormalTex;
+
+    uint c_useMetallicRoughnessTex;
     uint3 __pad;
 };
 
@@ -55,6 +64,7 @@ SamplerState TrilinearSamp : register(s1);
 
 Texture2D<float4> AlbedoTexture : register(t0);
 Texture2D<float4> NormalTexture : register(t1);
+Texture2D<float4> MetallicRoughnessTexture : register(t2);
 
 float4 main(PS_INPUT input) : SV_Target0
 {
@@ -77,13 +87,23 @@ float4 main(PS_INPUT input) : SV_Target0
         normal = (2.0f * normal) - float(1.0f).rrr;
     }
 
+    float metallic = 0.0f;
+    float roughness = c_roughnessFactor;
+
+    if(c_useMetallicRoughnessTex)
+    {
+        float2 metallicRoughnessSample = MetallicRoughnessTexture.Sample(TrilinearSamp, input.texcoord).rg;
+        metallic = metallicRoughnessSample.x * c_metallicFactor;
+        roughness = metallicRoughnessSample.y * c_roughnessFactor;
+
+        col.rgb = float3(metallicRoughnessSample, 0);
+    }
+
     normal = normalize(mul(normal, tangentMatrix));
     
     float3 n = normalize(normal);
 
-    float3 l = normalize(float3(0.2, -1, 0.2));
-
-    float ndl = saturate(dot(n, -l));
+    float ndl = saturate(dot(n, -LightDir));
 
     return float4(ndl * col.rgb + (0.1 * col.rgb), 1); 
 };

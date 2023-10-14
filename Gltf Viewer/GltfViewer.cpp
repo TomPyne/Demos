@@ -175,9 +175,12 @@ struct MaterialInstance
 	uint32_t parentMaterial = 0;
 
 	float4 baseColorFactor = float4{1.0f};
+	float metallicFactor = 1.0f;
+	float roughnessFactor = 1.0f;
 
 	Texture_t baseColorTexture = Texture_t::INVALID;
 	Texture_t normalTexture = Texture_t::INVALID;
+	Texture_t metallicRoughnessTexture = Texture_t::INVALID;
 };
 
 struct BindVertexBuffer
@@ -310,8 +313,12 @@ uint32_t GltfProcessor::ProcessMesh(const GltfMeshPrimitive& prim)
 		m.material.baseColorFactor = float4{ (float)mat.pbr.baseColorFactor.x, (float)mat.pbr.baseColorFactor.y,(float)mat.pbr.baseColorFactor.z,(float)mat.pbr.baseColorFactor.w };
 		m.material.parentMaterial = 1;
 
+		m.material.metallicFactor = mat.pbr.metallicFactor;
+		m.material.roughnessFactor = mat.pbr.roughnessFactor;
+
 		m.material.baseColorTexture = mat.pbr.hasBaseColorTexture ? ProcessTexture(mat.pbr.baseColorTexture) : Texture_t::INVALID;
 		m.material.normalTexture = mat.hasNormalTexture ? ProcessNormalTexture(mat.normalTexture) : Texture_t::INVALID;
+		m.material.metallicRoughnessTexture = mat.pbr.hasMetallicRoughnessTexture ? ProcessTexture(mat.pbr.metallicRoughnessTexture) : Texture_t::INVALID;
 	}
 
 	{
@@ -506,11 +513,14 @@ int main()
 		{
 			matrix viewProjMat;
 			float3 camPos;
-			float pad;
+			float pad0;
+			float3 lightDir;
+			float pad1;
 		} viewBufData;
 
 		viewBufData.viewProjMat = viewData.view * screenData.projection;
 		viewBufData.camPos = viewData.position;
+		viewBufData.lightDir = NormalizeF3(float3{ 0.2f, -1.0f, 0.2f });
 
 		DynamicBuffer_t viewBuf = CreateDynamicConstantBuffer(&viewBufData, sizeof(viewBufData));
 
@@ -534,21 +544,30 @@ int main()
 				struct MaterialConstants
 				{
 					float4 albedoTint;
+
+					float metallicFactor;
+					float roughnessFactor;
 					u32 useAlbedoTex = 0;
 					u32 useNormalTex = 0;
-					u32 __pad[2];
+
+					u32 useMetallicRoughnessTex = 0;
+					u32 __pad[3];
 				} matConsts;
 
 				matConsts.albedoTint = mesh.material.baseColorFactor;
+				matConsts.metallicFactor = mesh.material.metallicFactor;
+				matConsts.roughnessFactor = mesh.material.roughnessFactor;
 
 				matConsts.useAlbedoTex = mesh.material.baseColorTexture != Texture_t::INVALID;
 				matConsts.useNormalTex = mesh.material.normalTexture != Texture_t::INVALID;
+				matConsts.useMetallicRoughnessTex = mesh.material.metallicRoughnessTexture != Texture_t::INVALID;
 
 				DynamicBuffer_t materialBuf = CreateDynamicConstantBuffer(&matConsts, sizeof(matConsts));
 				cl->BindPixelCBVs(1, 1, &materialBuf);
 
 				cl->BindPixelTextures(0, 1, &mesh.material.baseColorTexture);
 				cl->BindPixelTextures(1, 1, &mesh.material.normalTexture);
+				cl->BindPixelTextures(2, 1, &mesh.material.metallicRoughnessTexture);
 
 				cl->SetVertexBuffers(0, 1, &mesh.positionBuf.buf, &mesh.positionBuf.stride, &mesh.positionBuf.offset);
 				cl->SetVertexBuffers(1, 1, &mesh.normalBuf.buf, &mesh.normalBuf.stride, &mesh.normalBuf.offset);

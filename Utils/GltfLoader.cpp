@@ -288,16 +288,21 @@ static GltfPbrMetallicRoughness GltfPbrMetallicRoughness_Parse(const rapidjson::
     // Must default this if parsing fails as per the spec.
     GltfPbrMetallicRoughness pbr = GltfPbrMetallicRoughness_Default();
 
-    CheckGltfSupport(json, "GltfPbrMetallicRoughness", "metallicFactors");
-    CheckGltfSupport(json, "GltfPbrMetallicRoughness", "roughnessFactor");
-    CheckGltfSupport(json, "GltfPbrMetallicRoughness", "metallicRoughnessTexture");
     CheckGltfSupport(json, "GltfPbrMetallicRoughness", "extensions");
     CheckGltfSupport(json, "GltfPbrMetallicRoughness", "extras");
 
     pbr.baseColorFactor = Gltf_JsonGet(json, "baseColorFactor", GltfVec4(1.0, 1.0, 1.0, 1.0));
+
     pbr.hasBaseColorTexture = json.HasMember("baseColorTexture");
     if (pbr.hasBaseColorTexture) 
         pbr.hasBaseColorTexture = GltfTextureInfo_Parse(json["baseColorTexture"], &pbr.baseColorTexture);
+
+    pbr.metallicFactor = Gltf_JsonGet(json, "metallicFactor", 1.0f);
+    pbr.roughnessFactor = Gltf_JsonGet(json, "roughnessFactor", 1.0f);
+
+    pbr.hasMetallicRoughnessTexture = json.HasMember("metallicRoughnessTexture");
+    if (pbr.hasMetallicRoughnessTexture)
+        pbr.hasMetallicRoughnessTexture = GltfTextureInfo_Parse(json["metallicRoughnessTexture"], &pbr.metallicRoughnessTexture);
 
     return pbr;
 }
