@@ -121,6 +121,16 @@ float3 DiffuseBrdf(float3 f, float3 diffuse)
     return (float3(1.0f, 1.0f, 1.0f) - f) * (1.0f - M_PI) * diffuse;
 }
 
+float3 Tonemap(float3 x)
+{
+    const float a = 2.51f;
+    const float b = 0.03f;
+    const float c = 2.43f;
+    const float d = 0.59f;
+    const float e = 0.14f;
+    return saturate((x * (a * x + b)) / (x * (c * x + d) + e));
+}
+
 float4 main(PS_INPUT input, bool frontFace : SV_IsFrontFace ) : SV_Target0
 {
     float4 colAlpha = c_albedoTint;
@@ -187,7 +197,7 @@ float4 main(PS_INPUT input, bool frontFace : SV_IsFrontFace ) : SV_Target0
         diff += adjustedRadiance * DiffuseBrdf(f0, lerp(colAlpha.rgb, black, metallic));
     }
 
-    return float4(diff + spec + LightAmbient, colAlpha.a); 
+    return float4(Tonemap(diff + spec + LightAmbient), colAlpha.a); 
 };
 
 #endif
