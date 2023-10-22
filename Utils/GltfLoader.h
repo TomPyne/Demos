@@ -181,18 +181,27 @@ struct GltfNormalTextureInfo
     // Gltf Unsupported: scale
 };
 
+#undef OPAQUE
+
+enum class GltfAlphaMode : uint8_t
+{
+    OPAQUE,
+    MASK,
+    BLEND,
+};
+
 struct GltfMaterial
 {
     std::string name;
     GltfPbrMetallicRoughness pbr;
     bool hasNormalTexture;
     GltfNormalTextureInfo normalTexture;
+    GltfAlphaMode alphaMode;
+    float alphaCutoff;
+    bool doubleSided;
     // Gltf Unsupported: occlusionTexture
     // Gltf Unsupported: emissiveTexture
     // Gltf Unsupported: emissiveFactor
-    // Gltf Unsupported: alphaMode
-    // Gltf Unsupported: alphaCutoff
-    // Gltf Unsupported: doubleSided
     // Gltf Unsupported: extensions
     // Gltf Unsupported: extras
 };

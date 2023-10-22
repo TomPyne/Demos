@@ -20,12 +20,24 @@ struct PS_INPUT
     float3 worldPos : WORLDPOS;
 };
 
-#ifdef _VS
-
-cbuffer transformBuf : register(b1)
+cbuffer meshBuf : register(b1)
 {
-    row_major float4x4 TransformMatrix;
-};
+    row_major float4x4 c_transform;
+
+    float4 c_albedoTint;
+
+    float c_metallicFactor;
+    float c_roughnessFactor;
+    uint c_useAlbedoTex;
+    uint c_useNormalTex;
+
+    uint c_useMetallicRoughnessTex;
+    uint c_alphaMask;
+    float c_alphaCutoff;
+    uint __pad;
+}
+
+#ifdef _VS
 
 struct VS_INPUT
 {
@@ -38,12 +50,12 @@ struct VS_INPUT
 PS_INPUT main(VS_INPUT input)
 {
     PS_INPUT output;
-    float4 worldPos = mul(TransformMatrix, float4(input.pos.xyz, 1.f));
+    float4 worldPos = mul(c_transform, float4(input.pos.xyz, 1.f));
     
     output.pos = mul( ViewProjectionMatrix, worldPos );
     output.worldPos = worldPos.xyz;
-    output.normal = normalize(mul(TransformMatrix, float4(input.normal, 0.0f))).xyz;
-    output.tangent = normalize(mul(TransformMatrix, float4(input.tangent.xyz, 0.0f))).xyz;
+    output.normal = normalize(mul(c_transform, float4(input.normal, 0.0f))).xyz;
+    output.tangent = normalize(mul(c_transform, float4(input.tangent.xyz, 0.0f))).xyz;
     output.texcoord = input.texcoord;
     return output;
 };
@@ -51,19 +63,6 @@ PS_INPUT main(VS_INPUT input)
 #endif
 
 #ifdef _PS
-
-cbuffer MaterialBuf : register(b1)
-{
-    float4 c_albedoTint;
-
-    float c_metallicFactor;
-    float c_roughnessFactor;
-    uint c_useAlbedoTex;
-    uint c_useNormalTex;
-
-    uint c_useMetallicRoughnessTex;
-    uint3 __pad;
-};
 
 SamplerState TrilinearSamp : register(s1);
 
@@ -122,14 +121,22 @@ float3 DiffuseBrdf(float3 f, float3 diffuse)
     return (float3(1.0f, 1.0f, 1.0f) - f) * (1.0f - M_PI) * diffuse;
 }
 
-float4 main(PS_INPUT input) : SV_Target0
+float4 main(PS_INPUT input, bool frontFace : SV_IsFrontFace ) : SV_Target0
 {
-    float4 col = c_albedoTint;
+    float4 colAlpha = c_albedoTint;
 
     if(c_useAlbedoTex)
     {
-        col *= AlbedoTexture.Sample(TrilinearSamp, input.texcoord).rgba;
+        colAlpha *= AlbedoTexture.Sample(TrilinearSamp, input.texcoord).rgba;
     }
+
+    // TODO this should be a define to save perf, causes extra depth tests in case its needed.
+    if( c_alphaMask && colAlpha.a < c_alphaCutoff )
+    {
+        discard;
+    }
+
+    input.normal = frontFace ? input.normal : -input.normal;
 
     input.tangent = normalize(input.tangent - dot(input.tangent, input.normal)*input.normal);
     float3 bitangent = cross(input.normal, input.tangent);
@@ -173,14 +180,14 @@ float4 main(PS_INPUT input) : SV_Target0
 
     if(ndl > 0 || ndv > 0)
     {
-        const float3 f0 = lerp(f0Dielectric, col, metallic);
+        const float3 f0 = lerp(f0Dielectric, colAlpha.rgb, metallic);
         const float3 adjustedRadiance = LightRadiance * ndl;
 
         spec += adjustedRadiance * SpecularBrdf(f0, roughness, 1.0f, vdh, ndl, ndv, ndh);
-        diff += adjustedRadiance * DiffuseBrdf(f0, lerp(col, black, metallic));
+        diff += adjustedRadiance * DiffuseBrdf(f0, lerp(colAlpha.rgb, black, metallic));
     }
 
-    return float4(diff + spec + LightAmbient, 1); 
+    return float4(diff + spec + LightAmbient, colAlpha.a); 
 };
 
 #endif

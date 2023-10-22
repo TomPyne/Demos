@@ -312,9 +312,6 @@ static bool Gltf_Parse(const rapidjson::Value& json, GltfMaterial* material)
     CheckGltfSupport(json, "GltfMaterial", "occlusionTexture");
     CheckGltfSupport(json, "GltfMaterial", "emissiveTexture");
     CheckGltfSupport(json, "GltfMaterial", "emissiveFactor");
-    CheckGltfSupport(json, "GltfMaterial", "alphaMode");
-    CheckGltfSupport(json, "GltfMaterial", "alphaCutoff");
-    CheckGltfSupport(json, "GltfMaterial", "doubleSided");
     CheckGltfSupport(json, "GltfMaterial", "extensions");
     CheckGltfSupport(json, "GltfMaterial", "extras");
 
@@ -323,6 +320,19 @@ static bool Gltf_Parse(const rapidjson::Value& json, GltfMaterial* material)
     material->hasNormalTexture = json.HasMember("normalTexture");
     if (material->hasNormalTexture)
         material->hasNormalTexture = GltfNormalTextureInfo_Parse(json["normalTexture"], &material->normalTexture);
+
+    material->alphaMode = GltfAlphaMode::OPAQUE;
+    if (json.HasMember("alphaMode"))
+    {
+        const char* str = json["alphaMode"].GetString();
+        if ( !strcmp(str, "MASK") )
+            material->alphaMode = GltfAlphaMode::MASK;
+        else if (!strcmp(str, "BLEND"))
+            material->alphaMode = GltfAlphaMode::BLEND;
+    } 
+
+    material->alphaCutoff = Gltf_JsonGet(json, "alphaCutoff", 0.5f);
+    material->doubleSided = Gltf_JsonGet(json, "doubleSided", false);
 
     return true;
 }

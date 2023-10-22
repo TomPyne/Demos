@@ -15,6 +15,7 @@
 #include "ImGui/imgui_impl_render.h"
 #include "ImGui/imgui_impl_win32.h"
 
+#include <algorithm>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Render data
@@ -147,7 +148,7 @@ static void CameraUpdate(float delta)
 GraphicsPipelineState_t CreateMaterial()
 {
 	GraphicsPipelineStateDesc desc = {};
-	desc.RasterizerDesc(PrimitiveTopologyType::Triangle, FillMode::Solid, CullMode::None);
+	desc.RasterizerDesc(PrimitiveTopologyType::Triangle, FillMode::Solid, CullMode::Back);
 	desc.DepthDesc(true, ComparisionFunc::LessEqual);
 	desc.numRenderTargets = 1;
 	desc.blendMode[0].None();
@@ -168,18 +169,68 @@ GraphicsPipelineState_t CreateMaterial()
 	return CreateGraphicsPipelineState(desc, inputDesc, ARRAYSIZE(inputDesc));
 }
 
+union MaterialID
+{
+	struct
+	{
+		u8 doubleSided : 1;
+		u8 blendMode : 1;
+		u8 unused : 6;
+	};
+	u8 opaque = 0;
+};
+
+GraphicsPipelineState_t pipelines[1u << (1u + 2u)];
+
+void InitPipelines()
+{
+	const char* shaderPath = "Gltf Viewer/Mesh.hlsl";
+
+	VertexShader_t vs = CreateVertexShader(shaderPath);
+	PixelShader_t blendPs = CreatePixelShader(shaderPath);
+	PixelShader_t maskPs = CreatePixelShader(shaderPath, {"ALPHA_MASK"});
+
+	InputElementDesc inputDesc[] =
+	{
+		{"POSITION", 0, RenderFormat::R32G32B32_FLOAT, 0, 0, InputClassification::PerVertex, 0 },
+		{"NORMAL", 0, RenderFormat::R32G32B32_FLOAT, 1, 0, InputClassification::PerVertex, 0 },
+		{"TANGENT", 0, RenderFormat::R32G32B32A32_FLOAT, 2, 0, InputClassification::PerVertex, 0 },
+		{"TEXCOORD", 0, RenderFormat::R32G32_FLOAT, 3, 0, InputClassification::PerVertex, 0 },
+	};
+
+	GraphicsPipelineStateDesc desc = {};
+	desc.DepthDesc(true, ComparisionFunc::LessEqual);
+	desc.numRenderTargets = 1;
+
+	for (u8 doubleSided = 0; doubleSided <= 1; doubleSided++)
+	{
+		MaterialID curId;
+		curId.doubleSided = doubleSided;
+
+		desc.RasterizerDesc(PrimitiveTopologyType::Triangle, FillMode::Solid, doubleSided == 1 ? CullMode::None : CullMode::Back);
+
+		desc.vs = vs;
+		desc.ps = blendPs;
+
+		curId.blendMode = 0; // opaque
+		desc.blendMode[0].None();
+
+		pipelines[curId.opaque] = CreateGraphicsPipelineState(desc, inputDesc, ARRAYSIZE(inputDesc));
+
+		curId.blendMode = 1; // blend
+		desc.blendMode[0].Default();
+
+		pipelines[curId.opaque] = CreateGraphicsPipelineState(desc, inputDesc, ARRAYSIZE(inputDesc));
+	}
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // Assets
 ///////////////////////////////////////////////////////////////////////////////
 
-struct Material
-{
-	GraphicsPipelineState_t pso;	
-};
-
 struct MaterialInstance
 {
-	uint32_t parentMaterial = 0;
+	MaterialID pipeline;
 
 	float4 baseColorFactor = float4{1.0f};
 	float metallicFactor = 1.0f;
@@ -188,6 +239,9 @@ struct MaterialInstance
 	Texture_t baseColorTexture = Texture_t::INVALID;
 	Texture_t normalTexture = Texture_t::INVALID;
 	Texture_t metallicRoughnessTexture = Texture_t::INVALID;
+
+	bool alphaMask = false;
+	float alphaCutoff = 0.5f;
 };
 
 struct BindVertexBuffer
@@ -228,7 +282,6 @@ struct Model
 std::vector<Texture_t> loadedTextures;
 std::vector<Mesh> loadedMeshes;
 std::vector<Model> loadedModels;
-std::vector<Material> loadedMaterials;
 
 ///////////////////////////////////////////////////////////////////////////////
 // Asset Processing
@@ -317,8 +370,10 @@ uint32_t GltfProcessor::ProcessMesh(const GltfMeshPrimitive& prim)
 
 		const GltfMaterial& mat = _gltf.materials[prim.material];
 
-		m.material.baseColorFactor = float4{ (float)mat.pbr.baseColorFactor.x, (float)mat.pbr.baseColorFactor.y,(float)mat.pbr.baseColorFactor.z,(float)mat.pbr.baseColorFactor.w };
-		m.material.parentMaterial = 1;
+		m.material.pipeline.blendMode = mat.alphaMode == GltfAlphaMode::BLEND ? 1 : 0;
+		m.material.pipeline.doubleSided = mat.doubleSided;
+
+		m.material.baseColorFactor = float4{ (float)mat.pbr.baseColorFactor.x, (float)mat.pbr.baseColorFactor.y,(float)mat.pbr.baseColorFactor.z,(float)mat.pbr.baseColorFactor.w };		
 
 		m.material.metallicFactor = mat.pbr.metallicFactor;
 		m.material.roughnessFactor = mat.pbr.roughnessFactor;
@@ -326,6 +381,9 @@ uint32_t GltfProcessor::ProcessMesh(const GltfMeshPrimitive& prim)
 		m.material.baseColorTexture = mat.pbr.hasBaseColorTexture ? ProcessTexture(mat.pbr.baseColorTexture) : Texture_t::INVALID;
 		m.material.normalTexture = mat.hasNormalTexture ? ProcessNormalTexture(mat.normalTexture) : Texture_t::INVALID;
 		m.material.metallicRoughnessTexture = mat.pbr.hasMetallicRoughnessTexture ? ProcessTexture(mat.pbr.metallicRoughnessTexture) : Texture_t::INVALID;
+
+		m.material.alphaCutoff = mat.alphaCutoff;
+		m.material.alphaMask = mat.alphaMode == GltfAlphaMode::MASK;
 	}
 
 	{
@@ -451,7 +509,6 @@ int main(int argc, char* argv[])
 	loadedTextures.resize(1);
 	loadedMeshes.resize(1);
 	loadedModels.resize(1);
-	loadedMaterials.resize(1);
 
 	Gltf gltfModel;
 	if (!GltfLoader_Load(argv[1], &gltfModel))
@@ -490,9 +547,7 @@ int main(int argc, char* argv[])
 
 	UpdateView(float3{ -2, 6, -2 }, 0.0f, 45.0f);
 
-	Material defaultMaterial;
-	defaultMaterial.pso = CreateMaterial();
-	loadedMaterials.push_back(defaultMaterial);
+	InitPipelines();
 
 	// Main loop
 	bool bQuit = false;
@@ -524,6 +579,77 @@ int main(int argc, char* argv[])
 		}
 
 		Render_NewFrame();
+
+		struct MeshProxy
+		{
+			MaterialID pipeline;
+			DynamicBuffer_t meshBuf;
+			float dist;
+			uint32_t meshId;
+		};
+
+		std::vector<MeshProxy> opaqueMeshes;
+		std::vector<MeshProxy> translucentMeshes;
+
+		opaqueMeshes.resize(loadedMeshes.size());
+		translucentMeshes.resize(loadedMeshes.size());
+
+		u32 opaqueMeshIt = 0;
+		u32 translucentMeshIt = 0;
+
+		for (const auto& model : loadedModels)
+		{
+			struct MeshConstants
+			{
+				matrix transform;
+
+				float4 albedoTint;
+
+				float metallicFactor;
+				float roughnessFactor;
+				u32 useAlbedoTex = 0;
+				u32 useNormalTex = 0;
+
+				u32 useMetallicRoughnessTex = 0;
+				u32 alphaMask = 0;
+				float blendCutoff = 0;
+				u32 pad;
+			} meshConsts;
+
+			meshConsts.transform = model.transform;
+
+			for (uint32_t meshId : model.meshes)
+			{
+				const Mesh& mesh = loadedMeshes[meshId];
+
+				MeshProxy& proxy = (mesh.material.pipeline.blendMode == 1) ? translucentMeshes[translucentMeshIt++] : opaqueMeshes[opaqueMeshIt++];
+
+				proxy.pipeline = mesh.material.pipeline;
+
+				proxy.meshId = meshId;
+
+				meshConsts.albedoTint = mesh.material.baseColorFactor;
+				meshConsts.metallicFactor = mesh.material.metallicFactor;
+				meshConsts.roughnessFactor = mesh.material.roughnessFactor;
+
+				meshConsts.useAlbedoTex = mesh.material.baseColorTexture != Texture_t::INVALID;
+				meshConsts.useNormalTex = mesh.material.normalTexture != Texture_t::INVALID;
+				meshConsts.useMetallicRoughnessTex = mesh.material.metallicRoughnessTexture != Texture_t::INVALID;
+				meshConsts.alphaMask = mesh.material.alphaMask;
+				meshConsts.blendCutoff = mesh.material.alphaCutoff;
+
+				proxy.meshBuf = CreateDynamicConstantBuffer(&meshConsts, sizeof(meshConsts));
+
+				proxy.dist = LengthSqrF3(float3(model.transform._14, model.transform._24, model.transform._34) - viewData.position);
+			}
+		}
+
+		opaqueMeshes.resize(opaqueMeshIt);
+		translucentMeshes.resize(translucentMeshIt);
+
+		std::sort(opaqueMeshes.begin(), opaqueMeshes.end(), [](const MeshProxy& a, const MeshProxy& b) {return a.dist < b.dist; });
+		std::sort(translucentMeshes.begin(), translucentMeshes.end(), [](const MeshProxy& a, const MeshProxy& b) {return a.dist > b.dist; });
+
 		CommandListPtr cl = CommandList::Create();
 
 		view->ClearCurrentBackBufferTarget(cl.get());
@@ -570,62 +696,43 @@ int main(int argc, char* argv[])
 		viewBufData.lightRadiance = lightData.radiance;
 		viewBufData.lightAmbient = lightData.ambient;
 
-
 		DynamicBuffer_t viewBuf = CreateDynamicConstantBuffer(&viewBufData, sizeof(viewBufData));
 
 		cl->BindVertexCBVs(0, 1, &viewBuf);
 		cl->BindPixelCBVs(0, 1, &viewBuf);
 
-		// Draw meshes
-		for (const auto& model : loadedModels)
+		auto DrawProxies = [&](const std::vector<MeshProxy>& proxies)
 		{
-			DynamicBuffer_t transformBuf = CreateDynamicConstantBuffer(&model.transform, sizeof(model.transform));
-			cl->BindVertexCBVs(1, 1, &transformBuf);
-
-			for (uint32_t meshId : model.meshes)
+			for (const auto& p : proxies)
 			{
-				const Mesh& mesh = loadedMeshes[meshId];
+				cl->SetPipelineState(pipelines[p.pipeline.opaque]);
 
-				const Material& mat = loadedMaterials[mesh.material.parentMaterial];
+				cl->BindVertexCBVs(1, 1, &p.meshBuf);
+				cl->BindPixelCBVs(1, 1, &p.meshBuf);
 
-				cl->SetPipelineState(mat.pso);
+				const Mesh& mesh = loadedMeshes[p.meshId];
 
-				struct MaterialConstants
+				Texture_t textures[] =
 				{
-					float4 albedoTint;
-
-					float metallicFactor;
-					float roughnessFactor;
-					u32 useAlbedoTex = 0;
-					u32 useNormalTex = 0;
-
-					u32 useMetallicRoughnessTex = 0;
-					u32 __pad[3];
-				} matConsts;
-
-				matConsts.albedoTint = mesh.material.baseColorFactor;
-				matConsts.metallicFactor = mesh.material.metallicFactor;
-				matConsts.roughnessFactor = mesh.material.roughnessFactor;
-
-				matConsts.useAlbedoTex = mesh.material.baseColorTexture != Texture_t::INVALID;
-				matConsts.useNormalTex = mesh.material.normalTexture != Texture_t::INVALID;
-				matConsts.useMetallicRoughnessTex = mesh.material.metallicRoughnessTexture != Texture_t::INVALID;
-
-				DynamicBuffer_t materialBuf = CreateDynamicConstantBuffer(&matConsts, sizeof(matConsts));
-				cl->BindPixelCBVs(1, 1, &materialBuf);
-
-				cl->BindPixelTextures(0, 1, &mesh.material.baseColorTexture);
-				cl->BindPixelTextures(1, 1, &mesh.material.normalTexture);
-				cl->BindPixelTextures(2, 1, &mesh.material.metallicRoughnessTexture);
+					mesh.material.baseColorTexture,
+					mesh.material.normalTexture,
+					mesh.material.metallicRoughnessTexture,
+				};
+				cl->BindPixelTextures(0, ARRAYSIZE(textures), textures);
 
 				cl->SetVertexBuffers(0, 1, &mesh.positionBuf.buf, &mesh.positionBuf.stride, &mesh.positionBuf.offset);
 				cl->SetVertexBuffers(1, 1, &mesh.normalBuf.buf, &mesh.normalBuf.stride, &mesh.normalBuf.offset);
 				cl->SetVertexBuffers(2, 1, &mesh.tangentBuf.buf, &mesh.tangentBuf.stride, &mesh.tangentBuf.offset);
-				cl->SetVertexBuffers(3, 1, &mesh.texcoordBufs[0].buf, &mesh.texcoordBufs[0].stride, &mesh.texcoordBufs[0].offset);				
+				cl->SetVertexBuffers(3, 1, &mesh.texcoordBufs[0].buf, &mesh.texcoordBufs[0].stride, &mesh.texcoordBufs[0].offset);
 				cl->SetIndexBuffer(mesh.indexBuf.buf, mesh.indexBuf.format, mesh.indexBuf.offset);
 				cl->DrawIndexedInstanced(mesh.indexBuf.count, 1, 0, 0, 0);
 			}
-		}
+			
+		};
+
+		DrawProxies(opaqueMeshes);
+
+		DrawProxies(translucentMeshes);
 
 		ImGui_ImplRender_RenderDrawData(ImGui::GetDrawData(), cl.get());
 

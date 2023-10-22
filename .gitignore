@@ -26,6 +26,11 @@
 *.a
 *.lib
 
+# Intermediate Files
+*.recipe
+*.iobj
+*.ipdb
+
 # Executables
 *.exe
 *.out
