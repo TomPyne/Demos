@@ -5,7 +5,7 @@
 
 #include "../Render/Render.h"
 
-#include "ImGui/imgui/imgui.h"
+#include "ThirdParty/imgui/imgui.h"
 #include "ImGui/imgui_impl_win32.h"
 #include "ImGui/imgui_impl_render.h"
 
@@ -60,6 +60,10 @@ int main()
 		ImGui_ImplWin32_NewFrame();
 		ImGui::NewFrame();
 
+		ImGui::ShowDemoWindow();
+
+		ImGui::Render();
+
 		Render_NewFrame();
 		CommandListPtr cl = CommandList::Create();
 
@@ -67,10 +71,6 @@ int main()
 
 		RenderTargetView_t backBufferRtv = view->GetCurrentBackBufferRTV();
 		cl->SetRenderTargets(&backBufferRtv, 1, DepthStencilView_t::INVALID);
-
-		ImGui::ShowDemoWindow();
-
-		ImGui::Render();
 
 		ImGui_ImplRender_RenderDrawData(ImGui::GetDrawData(), cl.get());
 

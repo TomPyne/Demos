@@ -7,6 +7,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Render Example", "Example\R
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Gltf Viewer", "Gltf Viewer\Gltf Viewer.vcxproj", "{68EB8926-A18F-4024-81EF-B4B32925319F}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Volumetrics", "Volumetrics\Volumetrics.vcxproj", "{1217869B-AE61-4E00-81F2-08494D59536B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -31,6 +33,14 @@ Global
 		{68EB8926-A18F-4024-81EF-B4B32925319F}.Release|x64.Build.0 = Release|x64
 		{68EB8926-A18F-4024-81EF-B4B32925319F}.Release|x86.ActiveCfg = Release|Win32
 		{68EB8926-A18F-4024-81EF-B4B32925319F}.Release|x86.Build.0 = Release|Win32
+		{1217869B-AE61-4E00-81F2-08494D59536B}.Debug|x64.ActiveCfg = Debug|x64
+		{1217869B-AE61-4E00-81F2-08494D59536B}.Debug|x64.Build.0 = Debug|x64
+		{1217869B-AE61-4E00-81F2-08494D59536B}.Debug|x86.ActiveCfg = Debug|Win32
+		{1217869B-AE61-4E00-81F2-08494D59536B}.Debug|x86.Build.0 = Debug|Win32
+		{1217869B-AE61-4E00-81F2-08494D59536B}.Release|x64.ActiveCfg = Release|x64
+		{1217869B-AE61-4E00-81F2-08494D59536B}.Release|x64.Build.0 = Release|x64
+		{1217869B-AE61-4E00-81F2-08494D59536B}.Release|x86.ActiveCfg = Release|Win32
+		{1217869B-AE61-4E00-81F2-08494D59536B}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

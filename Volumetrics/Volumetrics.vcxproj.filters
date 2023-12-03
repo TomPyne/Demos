@@ -1,0 +1,243 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Source Files\Shared">
+      <UniqueIdentifier>{ea817632-6aab-41f4-8187-9f1e19d2347b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Shared\Utils">
+      <UniqueIdentifier>{c5f6eed5-654c-45e6-b7ba-3f0bfb9e195b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Shared\Render">
+      <UniqueIdentifier>{9494bd74-972e-4596-9d7f-6f469ab8e925}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Shared\Render\Impl">
+      <UniqueIdentifier>{4c42a45b-ee4e-4c2a-a010-fa0f611e4c17}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Shared\Render\Impl\Dx11">
+      <UniqueIdentifier>{433e0a82-125c-4a99-8826-ee876f4e00f7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Shared\ThirdParty">
+      <UniqueIdentifier>{50be3007-6856-4fbf-ac75-e1c072acb8db}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Shared\ThirdParty\imgui">
+      <UniqueIdentifier>{be520762-8cf9-475a-9c59-be70b8227af6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Shared\ThirdParty\rapidjson">
+      <UniqueIdentifier>{20459d98-688c-448d-93f3-184e82288ad4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Shared\ThirdParty\stb">
+      <UniqueIdentifier>{71dfb2d1-0337-4d69-9214-0d2875600188}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Shared\ImGui">
+      <UniqueIdentifier>{235733fd-ea5c-4b09-b972-5c4fac159d03}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Volumetrics.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ImGui\imgui_impl_render.cpp">
+      <Filter>Source Files\Shared\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ImGui\imgui_impl_win32.cpp">
+      <Filter>Source Files\Shared\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Render\Binding.cpp">
+      <Filter>Source Files\Shared\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Render\Buffers.cpp">
+      <Filter>Source Files\Shared\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Render\CommandList.cpp">
+      <Filter>Source Files\Shared\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Render\PipelineState.cpp">
+      <Filter>Source Files\Shared\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Render\Shaders.cpp">
+      <Filter>Source Files\Shared\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Render\Textures.cpp">
+      <Filter>Source Files\Shared\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Render\Impl\Dx11\BindingImpl.cpp">
+      <Filter>Source Files\Shared\Render\Impl\Dx11</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Render\Impl\Dx11\BuffersImpl.cpp">
+      <Filter>Source Files\Shared\Render\Impl\Dx11</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Render\Impl\Dx11\CommandListImpl.cpp">
+      <Filter>Source Files\Shared\Render\Impl\Dx11</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Render\Impl\Dx11\Dx11Types.cpp">
+      <Filter>Source Files\Shared\Render\Impl\Dx11</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Render\Impl\Dx11\PipelineStateImpl.cpp">
+      <Filter>Source Files\Shared\Render\Impl\Dx11</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Render\Impl\Dx11\RenderImpl.cpp">
+      <Filter>Source Files\Shared\Render\Impl\Dx11</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Render\Impl\Dx11\SamplersImpl.cpp">
+      <Filter>Source Files\Shared\Render\Impl\Dx11</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Render\Impl\Dx11\ShadersImpl.cpp">
+      <Filter>Source Files\Shared\Render\Impl\Dx11</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Render\Impl\Dx11\TexturesImpl.cpp">
+      <Filter>Source Files\Shared\Render\Impl\Dx11</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Render\Impl\Dx11\ViewImpl.cpp">
+      <Filter>Source Files\Shared\Render\Impl\Dx11</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ThirdParty\imgui\imgui.cpp">
+      <Filter>Source Files\Shared\ThirdParty\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ThirdParty\imgui\imgui_demo.cpp">
+      <Filter>Source Files\Shared\ThirdParty\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ThirdParty\imgui\imgui_draw.cpp">
+      <Filter>Source Files\Shared\ThirdParty\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ThirdParty\imgui\imgui_widgets.cpp">
+      <Filter>Source Files\Shared\ThirdParty\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Utils\DDSTextureLoader.cpp">
+      <Filter>Source Files\Shared\Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Utils\Files.cpp">
+      <Filter>Source Files\Shared\Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Utils\GltfLoader.cpp">
+      <Filter>Source Files\Shared\Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Utils\Logging.cpp">
+      <Filter>Source Files\Shared\Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Utils\TextureLoader.cpp">
+      <Filter>Source Files\Shared\Utils</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\ImGui\imgui_impl_render.h">
+      <Filter>Source Files\Shared\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ImGui\imgui_impl_win32.h">
+      <Filter>Source Files\Shared\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Render\Binding.h">
+      <Filter>Source Files\Shared\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Render\Buffers.h">
+      <Filter>Source Files\Shared\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Render\CommandList.h">
+      <Filter>Source Files\Shared\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Render\IDArray.h">
+      <Filter>Source Files\Shared\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Render\PipelineState.h">
+      <Filter>Source Files\Shared\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Render\Render.h">
+      <Filter>Source Files\Shared\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Render\RenderTypes.h">
+      <Filter>Source Files\Shared\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Render\Samplers.h">
+      <Filter>Source Files\Shared\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Render\Shaders.h">
+      <Filter>Source Files\Shared\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Render\Textures.h">
+      <Filter>Source Files\Shared\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Render\View.h">
+      <Filter>Source Files\Shared\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Render\Impl\BindingImpl.h">
+      <Filter>Source Files\Shared\Render\Impl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Render\Impl\BuffersImpl.h">
+      <Filter>Source Files\Shared\Render\Impl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Render\Impl\PipelineStateImpl.h">
+      <Filter>Source Files\Shared\Render\Impl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Render\Impl\ShadersImpl.h">
+      <Filter>Source Files\Shared\Render\Impl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Render\Impl\TexturesImpl.h">
+      <Filter>Source Files\Shared\Render\Impl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Render\Impl\Dx11\Dx11Types.h">
+      <Filter>Source Files\Shared\Render\Impl\Dx11</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Render\Impl\Dx11\RenderImpl.h">
+      <Filter>Source Files\Shared\Render\Impl\Dx11</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ThirdParty\imgui\imconfig.h">
+      <Filter>Source Files\Shared\ThirdParty\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ThirdParty\imgui\imgui.h">
+      <Filter>Source Files\Shared\ThirdParty\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ThirdParty\imgui\imgui_internal.h">
+      <Filter>Source Files\Shared\ThirdParty\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ThirdParty\imgui\imstb_rectpack.h">
+      <Filter>Source Files\Shared\ThirdParty\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ThirdParty\imgui\imstb_textedit.h">
+      <Filter>Source Files\Shared\ThirdParty\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ThirdParty\imgui\imstb_truetype.h">
+      <Filter>Source Files\Shared\ThirdParty\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ThirdParty\rapidjson\rapidjson.h">
+      <Filter>Source Files\Shared\ThirdParty\rapidjson</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ThirdParty\stb\stb_image.h">
+      <Filter>Source Files\Shared\ThirdParty\stb</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Utils\DDSTextureLoader.h">
+      <Filter>Source Files\Shared\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Utils\Files.h">
+      <Filter>Source Files\Shared\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Utils\GltfLoader.h">
+      <Filter>Source Files\Shared\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Utils\HighResolutionClock.h">
+      <Filter>Source Files\Shared\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Utils\KeyCodes.h">
+      <Filter>Source Files\Shared\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Utils\Logging.h">
+      <Filter>Source Files\Shared\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Utils\SurfMath.h">
+      <Filter>Source Files\Shared\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Utils\TextureLoader.h">
+      <Filter>Source Files\Shared\Utils</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

@@ -145,30 +145,6 @@ static void CameraUpdate(float delta)
 	UpdateView(viewData.position + translation, camPitch, camYaw);
 }
 
-GraphicsPipelineState_t CreateMaterial()
-{
-	GraphicsPipelineStateDesc desc = {};
-	desc.RasterizerDesc(PrimitiveTopologyType::Triangle, FillMode::Solid, CullMode::Back);
-	desc.DepthDesc(true, ComparisionFunc::LessEqual);
-	desc.numRenderTargets = 1;
-	desc.blendMode[0].None();
-
-	const char* shaderPath = "Gltf Viewer/Mesh.hlsl";
-
-	desc.vs = CreateVertexShader(shaderPath);
-	desc.ps = CreatePixelShader(shaderPath);
-
-	InputElementDesc inputDesc[] =
-	{
-		{"POSITION", 0, RenderFormat::R32G32B32_FLOAT, 0, 0, InputClassification::PerVertex, 0 },
-		{"NORMAL", 0, RenderFormat::R32G32B32_FLOAT, 1, 0, InputClassification::PerVertex, 0 },
-		{"TANGENT", 0, RenderFormat::R32G32B32A32_FLOAT, 2, 0, InputClassification::PerVertex, 0 },
-		{"TEXCOORD", 0, RenderFormat::R32G32_FLOAT, 3, 0, InputClassification::PerVertex, 0 },
-	};
-
-	return CreateGraphicsPipelineState(desc, inputDesc, ARRAYSIZE(inputDesc));
-}
-
 union MaterialID
 {
 	struct
@@ -504,7 +480,7 @@ int main(int argc, char* argv[])
 
 	WNDCLASSEX wc = { sizeof(WNDCLASSEX), CS_CLASSDC, WndProc, 0L, 0L, GetModuleHandle(NULL), NULL, NULL, NULL, NULL, L"Render Example", NULL };
 	::RegisterClassEx(&wc);
-	HWND hwnd = ::CreateWindow(wc.lpszClassName, L"Render Example", WS_OVERLAPPEDWINDOW, 100, 100, 1280, 800, NULL, NULL, wc.hInstance, NULL);
+	HWND hwnd = ::CreateWindow(wc.lpszClassName, L"Gltf Viewew", WS_OVERLAPPEDWINDOW, 100, 100, 1280, 800, NULL, NULL, wc.hInstance, NULL);
 
 	loadedTextures.resize(1);
 	loadedMeshes.resize(1);
