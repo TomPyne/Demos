@@ -4,6 +4,7 @@
 #include <iostream>
 
 #include "Render/Render.h"
+#include "Utils/Camera/FlyCamera.h"
 #include "Utils/GltfLoader.h"
 #include "Utils/HighResolutionClock.h"
 #include "Utils/KeyCodes.h"
@@ -24,22 +25,9 @@ struct
 {
 	u32 w = 0;
 	u32 h = 0;
-	float nearZ = 0.1f;
-	float farZ = 10'000.0f;
-	float fov = 45.0f;
-	float aspectRatio = 0.0f;
-	matrix projection;
+	FlyCamera cam;
 	Texture_t DepthTex = Texture_t::INVALID;
 } screenData;
-
-struct
-{
-	float3 position;
-	float3 lookDir;
-	float camPitch = 0.0f;
-	float camYaw = 0.0f;
-	matrix view;
-} viewData;
 
 struct
 {
@@ -59,9 +47,7 @@ static void ResizeTargets(u32 w, u32 h)
 	screenData.w = w;
 	screenData.h = h;
 
-	screenData.aspectRatio = (float)w / (float)h;
-
-	screenData.projection = MakeMatrixPerspectiveFovLH(ConvertToRadians(screenData.fov), screenData.aspectRatio, screenData.nearZ, screenData.farZ);
+	screenData.cam.Resize(w, h);
 
 	Render_Release(screenData.DepthTex);
 
@@ -71,78 +57,6 @@ static void ResizeTargets(u32 w, u32 h)
 	desc.format = RenderFormat::D32_FLOAT;
 	desc.flags = RenderResourceFlags::DSV;
 	screenData.DepthTex = CreateTexture(desc);
-}
-
-static void UpdateView(const float3& position, float pitch, float yaw)
-{
-	viewData.position = position;
-
-	if (yaw > 360.0f)
-		yaw -= 360.0f;
-
-	if (yaw < -360.0f)
-		yaw += 360.0f;
-
-	viewData.camPitch = pitch;
-	viewData.camYaw = yaw;
-
-	pitch = Clamp(pitch, -89.9f, 89.9f);
-
-	yaw = ConvertToRadians(yaw);
-	pitch = ConvertToRadians(pitch);
-
-	float cosPitch = cosf(pitch);
-
-	viewData.lookDir = float3{ cosf(yaw) * cosPitch, sinf(pitch), sinf(yaw) * cosPitch };
-
-	viewData.view = MakeMatrixLookToLH(position, viewData.lookDir, float3{ 0, 1, 0 });
-}
-
-static void CameraUpdate(float delta)
-{
-	ImGuiIO& io = ImGui::GetIO();
-
-	float camPitch = viewData.camPitch;
-	float camYaw = viewData.camYaw;
-
-	if (!io.WantCaptureMouse && io.MouseDown[1])
-	{
-		float yaw = ImGui::GetIO().MouseDelta.x;
-		float pitch = ImGui::GetIO().MouseDelta.y;
-
-		camPitch -= pitch * 25.0f * delta;
-		camYaw -= yaw * 25.0f * delta;
-	}
-
-	float3 translation = { 0.0f };
-
-	if (!io.WantCaptureKeyboard)
-	{
-		float3 fwd = viewData.lookDir;
-		float3 rgt = CrossF3(float3{ 0, 1, 0 }, viewData.lookDir);
-
-		constexpr float speed = 5.0f;
-
-		float moveSpeed = speed * delta;
-
-		float3 translateDir = 0.0f;
-
-		if (io.KeysDown[KeyCode::W]) translateDir += fwd;
-		if (io.KeysDown[KeyCode::S]) translateDir -= fwd;
-
-		if (io.KeysDown[KeyCode::D]) translateDir += rgt;
-		if (io.KeysDown[KeyCode::A]) translateDir -= rgt;
-
-		if (io.KeyShift)
-			moveSpeed *= 4.0f;
-
-		translation = NormalizeF3(translateDir) * moveSpeed;
-
-		if (io.KeysDown[KeyCode::E]) translation.y += moveSpeed;
-		if (io.KeysDown[KeyCode::Q]) translation.y -= moveSpeed;
-	}
-
-	UpdateView(viewData.position + translation, camPitch, camYaw);
 }
 
 union MaterialID
@@ -521,7 +435,7 @@ int main(int argc, char* argv[])
 
 	HighResolutionClock updateClock;
 
-	UpdateView(float3{ -2, 6, -2 }, 0.0f, 45.0f);
+	screenData.cam.SetView(float3{ -2, 6, -2 }, 0.0f, 45.0f);
 
 	InitPipelines();
 
@@ -541,7 +455,7 @@ int main(int argc, char* argv[])
 		updateClock.Tick();
 		const float delta = (float)updateClock.GetDeltaSeconds();
 
-		CameraUpdate(delta);
+		screenData.cam.UpdateView(delta);
 
 		{
 			ImGui_ImplRender_NewFrame();
@@ -616,7 +530,7 @@ int main(int argc, char* argv[])
 
 				proxy.meshBuf = CreateDynamicConstantBuffer(&meshConsts, sizeof(meshConsts));
 
-				proxy.dist = LengthSqrF3(float3(model.transform._14, model.transform._24, model.transform._34) - viewData.position);
+				proxy.dist = LengthSqrF3(float3(model.transform._14, model.transform._24, model.transform._34) - screenData.cam.GetPosition() );
 			}
 		}
 
@@ -662,8 +576,8 @@ int main(int argc, char* argv[])
 			float pad3;
 		} viewBufData;
 
-		viewBufData.viewProjMat = viewData.view * screenData.projection;
-		viewBufData.camPos = viewData.position;
+		viewBufData.viewProjMat = screenData.cam.GetView() * screenData.cam.GetProjection();
+		viewBufData.camPos = screenData.cam.GetPosition();
 
 		const float pitchRad = ConvertToRadians(lightData.sunPitchYaw.x);
 		const float yawRad = ConvertToRadians(lightData.sunPitchYaw.y);
