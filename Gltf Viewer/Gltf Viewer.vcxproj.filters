@@ -39,6 +39,9 @@
     <Filter Include="Source Files\Utils\Camera">
       <UniqueIdentifier>{b04526d1-79de-4ff4-87d7-887e3f3f4c87}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Utils\Scene">
+      <UniqueIdentifier>{45a75d15-09d4-4215-be58-bd23ef6cadb5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Render\Binding.cpp">
@@ -130,6 +133,15 @@
     </ClCompile>
     <ClCompile Include="..\Utils\Camera\Camera.cpp">
       <Filter>Source Files\Utils\Camera</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Utils\Scene\ModelNode.cpp">
+      <Filter>Source Files\Utils\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Utils\Scene\Scene.cpp">
+      <Filter>Source Files\Utils\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Utils\Scene\SceneNode.cpp">
+      <Filter>Source Files\Utils\Scene</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -246,6 +258,15 @@
     </ClInclude>
     <ClInclude Include="..\Utils\Camera\Camera.h">
       <Filter>Source Files\Utils\Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Utils\Scene\ModelNode.h">
+      <Filter>Source Files\Utils\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Utils\Scene\Scene.h">
+      <Filter>Source Files\Utils\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Utils\Scene\SceneNode.h">
+      <Filter>Source Files\Utils\Scene</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

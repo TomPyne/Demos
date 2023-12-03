@@ -39,7 +39,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Render Example.cpp">
+    <ClCompile Include="RenderGraph.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\Render\Binding.cpp">

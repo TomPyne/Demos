@@ -163,6 +163,9 @@
     <ClCompile Include="..\Utils\Files.cpp" />
     <ClCompile Include="..\Utils\GltfLoader.cpp" />
     <ClCompile Include="..\Utils\Logging.cpp" />
+    <ClCompile Include="..\Utils\Scene\ModelNode.cpp" />
+    <ClCompile Include="..\Utils\Scene\Scene.cpp" />
+    <ClCompile Include="..\Utils\Scene\SceneNode.cpp" />
     <ClCompile Include="..\Utils\TextureLoader.cpp" />
     <ClCompile Include="GltfViewer.cpp" />
   </ItemGroup>
@@ -203,6 +206,9 @@
     <ClInclude Include="..\Utils\HighResolutionClock.h" />
     <ClInclude Include="..\Utils\KeyCodes.h" />
     <ClInclude Include="..\Utils\Logging.h" />
+    <ClInclude Include="..\Utils\Scene\ModelNode.h" />
+    <ClInclude Include="..\Utils\Scene\Scene.h" />
+    <ClInclude Include="..\Utils\Scene\SceneNode.h" />
     <ClInclude Include="..\Utils\SurfMath.h" />
     <ClInclude Include="..\Utils\TextureLoader.h" />
   </ItemGroup>

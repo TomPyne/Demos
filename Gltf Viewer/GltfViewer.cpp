@@ -187,7 +187,6 @@ struct GltfProcessor
 
 	uint32_t ProcessMesh(const GltfMeshPrimitive& prim);
 	uint32_t ProcessNode(int32_t nodeIdx, uint32_t parentIdx);
-	uint32_t ProcessMaterial(int32_t materialIdx);
 	Texture_t ProcessTexture(const GltfTextureInfo& tex);
 	Texture_t ProcessNormalTexture(const GltfNormalTextureInfo& tex);
 	void ProcessScenes();
@@ -337,13 +336,6 @@ uint32_t GltfProcessor::ProcessNode(int32_t nodeIdx, uint32_t parentIdx)
 		ProcessNode(child, modelIdx);
 
 	return modelIdx;
-}
-
-uint32_t GltfProcessor::ProcessMaterial(int32_t materialIdx)
-{
-	const GltfMaterial& material = _gltf.materials[materialIdx];
-
-	return 0;
 }
 
 void GltfProcessor::ProcessScenes()

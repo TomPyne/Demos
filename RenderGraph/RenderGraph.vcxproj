@@ -159,7 +159,7 @@
     <ClCompile Include="..\ThirdParty\imgui\imgui_widgets.cpp" />
     <ClCompile Include="..\Utils\Camera\Camera.cpp" />
     <ClCompile Include="..\Utils\Camera\FlyCamera.cpp" />
-    <ClCompile Include="Render Example.cpp" />
+    <ClCompile Include="RenderGraph.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\ImGui\imgui_impl_render.h" />

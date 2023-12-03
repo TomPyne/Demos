@@ -142,6 +142,8 @@ struct Vector3Component
 
     Vector3Component Swizzle(u32 x, u32 y, u32 z) const noexcept { return Vector3Component{ v[x], v[y], v[z] }; }
 
+    constexpr Vector3Component operator-() const noexcept { return  Vector3Component{ -x, -y, -z }; }
+
     Vector3Component& operator+=(const Vector3Component& rhs)
     {
         this->x += rhs.x;
@@ -206,6 +208,8 @@ struct Vector4Component
     constexpr Vector4Component(T _xyzw) : x(_xyzw), y(_xyzw), z(_xyzw), w(_xyzw) {}
     constexpr Vector4Component(Vector3Component<T> _f3, T _w = (T)0) : x(_f3.x), y(_f3.y), z(_f3.z), w(_w) {}
     constexpr Vector4Component(T _x, T _y, T _z, T _w) : x(_x), y(_y), z(_z), w(_w) {}
+
+    constexpr Vector4Component operator-() const noexcept { return  Vector4Component{ -x, -y, -z, -w }; }
 
     Vector4Component& operator+=(const Vector4Component& rhs)
     {

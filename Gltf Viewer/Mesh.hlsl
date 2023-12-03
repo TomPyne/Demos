@@ -15,7 +15,7 @@ struct PS_INPUT
 {
     float4 pos : SV_POSITION;
     float3 normal : NORMAL;
-    float3 tangent : TANGENT; // W component is handedness
+    float3 tangent : TANGENT; 
     float2 texcoord : TEXCOORD0;
     float3 worldPos : WORLDPOS;
 };
