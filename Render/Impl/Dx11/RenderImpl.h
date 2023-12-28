@@ -51,7 +51,7 @@ struct Dx11ComputePipelineState
 };
 
 Dx11GraphicsPipelineState* Dx11_GetGraphicsPipelineState(GraphicsPipelineState_t pso);
-Dx11ComputePipelineState* Dx11_ComputePipelineState(ComputePipelineState_t pso);
+Dx11ComputePipelineState* Dx11_GetComputePipelineState(ComputePipelineState_t pso);
 
 ID3DBlob* Dx11_GetVertexShaderBlob(VertexShader_t handle);
 ID3D11VertexShader* Dx11_GetVertexShader(VertexShader_t vs);

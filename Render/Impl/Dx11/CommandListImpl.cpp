@@ -119,8 +119,24 @@ void CommandList::SetPipelineState(GraphicsPipelineState_t pso)
 	impl->context->VSSetShader(Dx11_GetVertexShader(dxPso->vs), nullptr, 0);
 	impl->context->GSSetShader(Dx11_GetGeometryShader(dxPso->gs), nullptr, 0);
 	impl->context->PSSetShader(Dx11_GetPixelShader(dxPso->ps), nullptr, 0);
+	impl->context->CSSetShader(nullptr, nullptr, 0);
 
+	lastComputePipeline = ComputePipelineState_t::INVALID;
 	lastPipeline = pso;
+}
+
+void CommandList::SetPipelineState(ComputePipelineState_t pso)
+{
+	if (pso == lastComputePipeline)
+		return;
+
+	Dx11ComputePipelineState* dxPso = Dx11_GetComputePipelineState(pso);
+
+	//impl->context->ClearState();
+	impl->context->CSSetShader(Dx11_GetComputeShader(dxPso->_cs), nullptr, 0);
+
+	lastPipeline = GraphicsPipelineState_t::INVALID;
+	lastComputePipeline = pso;
 }
 
 void CommandList::SetVertexBuffers(uint32_t startSlot, uint32_t count, const VertexBuffer_t* const vbs, const uint32_t* const strides, const uint32_t* const offsets)
@@ -173,6 +189,11 @@ void CommandList::DrawIndexedInstanced(uint32_t numIndices, uint32_t numInstance
 void CommandList::DrawInstanced(uint32_t numVerts, uint32_t numInstances, uint32_t startVertex, uint32_t startInstance)
 {
 	impl->context->DrawInstanced((UINT)numVerts, (UINT)numInstances, (UINT)startVertex, (UINT)startInstance);
+}
+
+void CommandList::Dispatch(uint32_t x, uint32_t y, uint32_t z)
+{
+	impl->context->Dispatch(x, y, z);
 }
 
 // Dx11 Style Bind Commands
@@ -261,6 +282,50 @@ void CommandList::BindPixelCBVs(uint32_t startSlot, uint32_t count, const Dynami
 	{
 		ID3D11Buffer* dxCbv = Dx11_GetDynamicBuffer(cbvs[i]);
 		impl->context->PSSetConstantBuffers(slot, 1, &dxCbv);
+	}
+}
+
+void CommandList::BindComputeSRVs(uint32_t startSlot, uint32_t count, const ShaderResourceView_t* const srvs)
+{
+	const UINT endSlot = startSlot + count;
+	UINT slot = startSlot;
+	for (UINT i = 0; slot < endSlot; i++, slot++)
+	{
+		ID3D11ShaderResourceView* dxSrv = Dx11_GetShaderResourceView(srvs[i]);
+		impl->context->CSSetShaderResources(slot, 1, &dxSrv);
+	}
+}
+
+void CommandList::BindComputeUAVs(uint32_t startSlot, uint32_t count, const UnorderedAccessView_t* const srvs)
+{
+	const UINT endSlot = startSlot + count;
+	UINT slot = startSlot;
+	for (UINT i = 0; slot < endSlot; i++, slot++)
+	{
+		ID3D11UnorderedAccessView* dxUav = Dx11_GetUnorderedAccessView(srvs[i]);
+		impl->context->CSSetUnorderedAccessViews(slot, 1, &dxUav, nullptr);
+	}
+}
+
+void CommandList::BindComputeCBVs(uint32_t startSlot, uint32_t count, const ConstantBuffer_t* const cbvs)
+{
+	const UINT endSlot = startSlot + count;
+	UINT slot = startSlot;
+	for (UINT i = 0; slot < endSlot; i++, slot++)
+	{
+		ID3D11Buffer* dxCbv = Dx11_GetConstantBuffer(cbvs[i]);
+		impl->context->CSSetConstantBuffers(slot, 1, &dxCbv);
+	}
+}
+
+void CommandList::BindComputeCBVs(uint32_t startSlot, uint32_t count, const DynamicBuffer_t* const cbvs)
+{
+	const UINT endSlot = startSlot + count;
+	UINT slot = startSlot;
+	for (UINT i = 0; slot < endSlot; i++, slot++)
+	{
+		ID3D11Buffer* dxCbv = Dx11_GetDynamicBuffer(cbvs[i]);
+		impl->context->CSSetConstantBuffers(slot, 1, &dxCbv);
 	}
 }
 

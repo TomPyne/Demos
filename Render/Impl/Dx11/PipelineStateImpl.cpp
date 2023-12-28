@@ -261,7 +261,7 @@ Dx11GraphicsPipelineState* Dx11_GetGraphicsPipelineState(GraphicsPipelineState_t
 	return &g_graphicsPipelines[(uint32_t)pso];
 }
 
-Dx11ComputePipelineState* Dx11_ComputePipelineState(ComputePipelineState_t pso)
+Dx11ComputePipelineState* Dx11_GetComputePipelineState(ComputePipelineState_t pso)
 {
 	return &g_computePipelines[(uint32_t)pso];
 }

@@ -3,6 +3,8 @@
 #include "Impl/BindingImpl.h"
 #include "IDArray.h"
 
+// TODO: Bindings should hold resource references, currently its the other way round
+
 enum class ViewResourceType : uint8_t
 {
 	Unknown = 0,
@@ -202,4 +204,24 @@ void ReleaseDSV(DepthStencilView_t dsv)
 {
 	if (g_DSVs.Release(dsv))
 		DestroyDSV(dsv);
+}
+
+void Render_Release(ShaderResourceView_t srv)
+{
+	ReleaseSRV(srv);
+}
+
+void Render_Release(UnorderedAccessView_t uav)
+{
+	ReleaseUAV(uav);
+}
+
+void Render_Release(RenderTargetView_t rtv)
+{
+	ReleaseRTV(rtv);
+}
+
+void Render_Release(DepthStencilView_t dsv)
+{
+	ReleaseDSV(dsv);
 }

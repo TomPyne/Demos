@@ -53,34 +53,34 @@ void LogDebug(const char* str)
 
 void _LogFatalfLF(const char* fmt, ...)
 {
-	PlatformFormatLogMessageLf(LogFatal, 0);
+	PlatformFormatLogMessageLf(LogFatal);
 }
 
 void _LogErrorfLF(const char* fmt, ...)
 {
-	PlatformFormatLogMessageLf(LogError, 0);
+	PlatformFormatLogMessageLf(LogError);
 }
 
 void _LogWarningfLF(const char* fmt, ...)
 {
-	PlatformFormatLogMessageLf(LogWarning, 0);
+	PlatformFormatLogMessageLf(LogWarning);
 }
 
 void _LogInfofLF(const char* fmt, ...)
 {
-	PlatformFormatLogMessageLf(LogInfo, 0);
+	PlatformFormatLogMessageLf(LogInfo);
 }
 
 void _LogDebugfLF(const char* fmt, ...)
 {
-	PlatformFormatLogMessageLf(LogDebug, 0);
+	PlatformFormatLogMessageLf(LogDebug);
 }
 
 bool _EnsureMsg(bool condition, const char * fmt, ...)
 {
 	if (condition == false)
 	{		
-		PlatformFormatLogMessageLf(LogError, 0);
+		PlatformFormatLogMessageLf(LogError);
 		__debugbreak();
 	}
 	return condition;
@@ -90,7 +90,7 @@ void _AssertMsg(bool condition, const char* fmt, ...)
 {
 	if (condition == false)
 	{
-		PlatformFormatLogMessageLf(LogFatal, 0);
+		PlatformFormatLogMessageLf(LogFatal);
 		__debugbreak();
 		assert(0);
 	}

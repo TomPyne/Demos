@@ -77,6 +77,8 @@ FWD_RENDER_TYPE(UnorderedAccessView_t);
 FWD_RENDER_TYPE(RenderTargetView_t);
 FWD_RENDER_TYPE(DepthStencilView_t);
 
+bool Textures_CreateViewsForResourceFlags(Texture_t tex, RenderResourceFlags flags);
+
 ShaderResourceView_t	GetTextureSRV(Texture_t tex);
 UnorderedAccessView_t	GetTextureUAV(Texture_t tex);
 RenderTargetView_t		GetTextureRTV(Texture_t tex);

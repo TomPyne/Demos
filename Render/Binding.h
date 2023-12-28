@@ -32,3 +32,8 @@ void ReleaseSRV(ShaderResourceView_t srv);
 void ReleaseUAV(UnorderedAccessView_t uav);
 void ReleaseRTV(RenderTargetView_t rtv);
 void ReleaseDSV(DepthStencilView_t dsv);
+
+void Render_Release(ShaderResourceView_t srv);
+void Render_Release(UnorderedAccessView_t uav);
+void Render_Release(RenderTargetView_t rtv);
+void Render_Release(DepthStencilView_t dsv);

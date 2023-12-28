@@ -171,6 +171,16 @@ struct Viewport
     float height;
     float minDepth;
     float maxDepth;
+
+    Viewport() = default;
+    Viewport(uint32_t w, uint32_t h)
+        : topLeftX(0.0f)
+        , topLeftY(0.0f)
+        , width((float)w)
+        , height((float)h)
+        , minDepth(0.0f)
+        , maxDepth(1.0f)
+    {}
 };
 
 struct ScissorRect

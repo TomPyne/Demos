@@ -144,7 +144,7 @@ struct BindVertexBuffer
 struct BindIndexBuffer
 {
 	IndexBuffer_t buf = IndexBuffer_t::INVALID;
-	RenderFormat format;
+	RenderFormat format = RenderFormat::UNKNOWN;
 	uint32_t offset = 0;
 	uint32_t count = 0;
 };
@@ -600,7 +600,8 @@ int main(int argc, char* argv[])
 					mesh.material.normalTexture,
 					mesh.material.metallicRoughnessTexture,
 				};
-				cl->BindPixelTextures(0, ARRAYSIZE(textures), textures);
+
+				cl->BindTexturesAsPixelSRVs(0, textures);
 
 				cl->SetVertexBuffers(0, 1, &mesh.positionBuf.buf, &mesh.positionBuf.stride, &mesh.positionBuf.offset);
 				cl->SetVertexBuffers(1, 1, &mesh.normalBuf.buf, &mesh.normalBuf.stride, &mesh.normalBuf.offset);

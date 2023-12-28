@@ -27,7 +27,7 @@ static void ImGui_ImplRender_ShutdownPlatformInterface();
 static void ImGui_ImplRender_SetupRenderState(ImDrawData* draw_data, CommandList* cl, DynamicBuffer_t vb, DynamicBuffer_t ib, DynamicBuffer_t cb)
 {
     // Setup viewport
-    Viewport vp;
+    Viewport vp{};
     ZeroMemory(&vp, sizeof(vp));
     vp.width = draw_data->DisplaySize.x;
     vp.height = draw_data->DisplaySize.y;

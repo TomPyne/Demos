@@ -28,6 +28,7 @@ RenderView::RenderView()
 
 RenderView::~RenderView()
 {
+	Render_Release(impl->RTV);
 	g_views.erase(hwnd);
 }
 

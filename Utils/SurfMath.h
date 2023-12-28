@@ -31,6 +31,9 @@ struct Vector2Component
     constexpr Vector2Component(T _xy) : x(_xy), y(_xy) {}
     constexpr Vector2Component(T _x, T _y) : x(_x), y(_y) {}
 
+    template<typename X>
+    Vector2Component(X _xy) : x(static_cast<T>(_xy.x)), y(static_cast<T>(_xy.y)) {}
+
     Vector2Component& operator*=(T rhs)
     {
         this->x *= rhs;
@@ -186,6 +189,7 @@ struct Vector3Component
 };
 
 using float3 = Vector3Component<float>;
+using uint3 = Vector3Component<u32>;
 
 template<typename T>
 struct Vector4Component

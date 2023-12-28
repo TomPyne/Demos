@@ -37,9 +37,12 @@
     <Filter Include="Source Files\Utils\Camera">
       <UniqueIdentifier>{2a18f50b-68a0-47d2-9c04-bacdb2ec5b26}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Utils\RenderGraph">
+      <UniqueIdentifier>{8d005b26-245c-4848-a1db-72f516b0828b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="RenderGraph.cpp">
+    <ClCompile Include="RenderGraphMain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\Render\Binding.cpp">
@@ -113,6 +116,12 @@
     </ClCompile>
     <ClCompile Include="..\Utils\Camera\Camera.cpp">
       <Filter>Source Files\Utils\Camera</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Utils\RenderGraph\RenderGraph.cpp">
+      <Filter>Source Files\Utils\RenderGraph</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Utils\Logging.cpp">
+      <Filter>Source Files\Utils</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -199,6 +208,15 @@
     </ClInclude>
     <ClInclude Include="..\Utils\Camera\Camera.h">
       <Filter>Source Files\Utils\Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Utils\RenderGraph\RenderGraph.h">
+      <Filter>Source Files\Utils\RenderGraph</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Utils\Flags.h">
+      <Filter>Source Files\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Utils\Logging.h">
+      <Filter>Source Files\Utils</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
