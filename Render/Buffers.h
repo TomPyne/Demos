@@ -32,3 +32,8 @@ void Render_Ref(StructuredBuffer_t sb);
 void Render_Ref(ConstantBuffer_t cb);
 
 void DynamicBuffers_NewFrame();
+
+size_t Buffers_GetVertexBufferCount();
+size_t Buffers_GetIndexBufferCount();
+size_t Buffers_GetStructuredBufferCount();
+size_t Buffers_GetConstantBufferCount();

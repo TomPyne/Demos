@@ -163,6 +163,7 @@
     <ClCompile Include="..\Utils\Camera\FlyCamera.cpp" />
     <ClCompile Include="..\Utils\Logging.cpp" />
     <ClCompile Include="..\Utils\RenderGraph\RenderGraph.cpp" />
+    <ClCompile Include="..\Utils\UI\RenderDebug.cpp" />
     <ClCompile Include="RenderGraphMain.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -197,6 +198,7 @@
     <ClInclude Include="..\Utils\Flags.h" />
     <ClInclude Include="..\Utils\Logging.h" />
     <ClInclude Include="..\Utils\RenderGraph\RenderGraph.h" />
+    <ClInclude Include="..\Utils\UI\RenderDebug.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

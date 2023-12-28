@@ -90,6 +90,8 @@ size_t Textures_BitsPerPixel(RenderFormat format);
 void Textures_CalculatePitch(RenderFormat format, uint32_t width, uint32_t height, size_t* rowPitch, size_t* slicePitch);
 void Textures_GetSurfaceInfo(uint32_t width, uint32_t height, RenderFormat format, size_t* outNumBytes, size_t* outRowBytes = nullptr, size_t* outNumRows = nullptr);
 
+size_t Texture_GetTextureCount();
+
 enum class TextureResourceAccessMethod : uint32_t
 {
 	Read,

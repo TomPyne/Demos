@@ -109,6 +109,11 @@ void InitSamplers(const SamplerDesc* const descs, size_t count)
 		CreateSampler(i, descs[i]);
 }
 
+size_t Samplers_GetSamplerCount()
+{
+	return g_Samplers.size();
+}
+
 size_t Dx11_GetSamplerCount()
 {
 	return g_Samplers.size();

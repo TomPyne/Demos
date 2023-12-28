@@ -152,21 +152,21 @@ bool Textures_CreateViewsForResourceFlags(Texture_t tex, RenderResourceFlags fla
             succeeded |= data->srv != ShaderResourceView_t::INVALID;
         }
 
-        if (data->uav == UnorderedAccessView_t::INVALID && (desc.flags & RenderResourceFlags::UAV) != RenderResourceFlags::None)
+        if (data->uav == UnorderedAccessView_t::INVALID && (flags & RenderResourceFlags::UAV) != RenderResourceFlags::None)
         {
             data->uav = CreateTextureUAV(tex, desc.uavFormat, desc.arraySize);
 
             succeeded |= data->uav != UnorderedAccessView_t::INVALID;
         }
 
-        if (data->rtv == RenderTargetView_t::INVALID && (desc.flags & RenderResourceFlags::RTV) != RenderResourceFlags::None)
+        if (data->rtv == RenderTargetView_t::INVALID && (flags & RenderResourceFlags::RTV) != RenderResourceFlags::None)
         {
             data->rtv = CreateTextureRTV(tex, desc.rtvFormat, desc.arraySize);
 
             succeeded |= data->rtv != RenderTargetView_t::INVALID;
         }
 
-        if (data->dsv == DepthStencilView_t::INVALID && (desc.flags & RenderResourceFlags::DSV) != RenderResourceFlags::None)
+        if (data->dsv == DepthStencilView_t::INVALID && (flags & RenderResourceFlags::DSV) != RenderResourceFlags::None)
         {
             data->dsv = CreateTextureDSV(tex, desc.dsvFormat, desc.arraySize);
 
@@ -565,6 +565,11 @@ void Textures_GetSurfaceInfo(uint32_t width, uint32_t height, RenderFormat forma
     {
         *outNumRows = static_cast<size_t>(numRows);
     }
+}
+
+size_t Texture_GetTextureCount()
+{
+    return g_Textures.UsedSize();
 }
 
 MipData::MipData(const void* _data, RenderFormat format, uint32_t width, uint32_t height)

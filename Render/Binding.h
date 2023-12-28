@@ -37,3 +37,8 @@ void Render_Release(ShaderResourceView_t srv);
 void Render_Release(UnorderedAccessView_t uav);
 void Render_Release(RenderTargetView_t rtv);
 void Render_Release(DepthStencilView_t dsv);
+
+size_t Bindings_GetShaderResourceViewCount();
+size_t Bindings_GetUnorderedAccessViewCount();
+size_t Bindings_GetRenderTargetViewCount();
+size_t Bindings_GetDepthStencilViewCount();

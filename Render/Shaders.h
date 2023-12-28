@@ -31,4 +31,9 @@ PixelShader_t		CreatePixelShader(const char* path, const ShaderMacros& macros = 
 GeometryShader_t	CreateGeometryShader(const char* path, const ShaderMacros& macros = {});
 ComputeShader_t		CreateComputeShader(const char* path, const ShaderMacros& macros = {});
 
+size_t Shaders_GetVertexShaderCount();
+size_t Shaders_GetPixelShaderCount();
+size_t Shaders_GetGeometryShaderCount();
+size_t Shaders_GetComputeShaderCount();
+
 void ReloadShaders();

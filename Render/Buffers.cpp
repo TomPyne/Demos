@@ -147,3 +147,23 @@ void Render_Ref(ConstantBuffer_t cb)
 {
 	g_ConstantBuffers.AddRef(cb);
 }
+
+size_t Buffers_GetVertexBufferCount()
+{
+	return g_VertexBuffers.UsedSize();
+}
+
+size_t Buffers_GetIndexBufferCount()
+{
+	return g_IndexBuffers.UsedSize();
+}
+
+size_t Buffers_GetStructuredBufferCount()
+{
+	return g_StructuredBuffers.UsedSize();
+}
+
+size_t Buffers_GetConstantBufferCount()
+{
+	return g_ConstantBuffers.UsedSize();
+}

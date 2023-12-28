@@ -145,3 +145,6 @@ ComputePipelineState_t CreateComputePipelineState(const ComputePipelineStateDesc
 
 void Render_Release(GraphicsPipelineState_t pso);
 void Render_Release(ComputePipelineState_t pso);
+
+size_t PipelineStates_GetGraphicsPipelineStateCount();
+size_t PipelineStates_GetComputePipelineStateCount();

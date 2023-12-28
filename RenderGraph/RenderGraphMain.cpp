@@ -14,6 +14,7 @@
 #include "ImGui/imgui_impl_render.h"
 #include "Utils/Logging.h"
 #include "Utils/Rendergraph/RenderGraph.h"
+#include "Utils/UI/RenderDebug.h"
 
 struct
 {
@@ -253,6 +254,8 @@ Mesh CreateCubeMesh()
 
 void DrawUI()
 {
+	ImGui_RenderDebug();
+
 	if (!ImGui::Begin("Gltf Viewer"))
 	{
 		// Early out if the window is collapsed, as an optimization.

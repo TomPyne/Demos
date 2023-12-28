@@ -69,6 +69,7 @@ struct IDArray
 	inline std::vector<DataType>& GetArray() noexcept { return Data; }
 	inline uint32_t RefCount(ID id) const noexcept { return RefCounts[(uint32_t)id] > 0; }
 	inline size_t Size() const noexcept { return Data.size(); }
+	inline size_t UsedSize() const noexcept { return Data.size() - FreeIDs.size(); }
 
 private:
 	std::vector<ID>		FreeIDs;

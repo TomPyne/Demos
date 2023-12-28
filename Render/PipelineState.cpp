@@ -63,3 +63,13 @@ void Render_Release(ComputePipelineState_t pso)
     if (g_ComputePipelineStates.Release(pso))
         DestroyComputePipelineState(pso);
 }
+
+size_t PipelineStates_GetGraphicsPipelineStateCount()
+{
+    return g_GraphicsPipelineStates.UsedSize();
+}
+
+size_t PipelineStates_GetComputePipelineStateCount()
+{
+    return g_ComputePipelineStates.UsedSize();
+}

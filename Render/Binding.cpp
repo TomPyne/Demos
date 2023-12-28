@@ -225,3 +225,23 @@ void Render_Release(DepthStencilView_t dsv)
 {
 	ReleaseDSV(dsv);
 }
+
+size_t Bindings_GetShaderResourceViewCount()
+{
+	return g_SRVs.UsedSize();
+}
+
+size_t Bindings_GetUnorderedAccessViewCount()
+{
+	return g_UAVs.UsedSize();
+}
+
+size_t Bindings_GetRenderTargetViewCount()
+{
+	return g_RTVs.UsedSize();
+}
+
+size_t Bindings_GetDepthStencilViewCount()
+{
+	return g_DSVs.UsedSize();
+}

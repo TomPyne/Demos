@@ -99,6 +99,26 @@ ComputeShader_t CreateComputeShader(const char* path, const ShaderMacros& macros
 	return newShader;
 }
 
+size_t Shaders_GetVertexShaderCount()
+{
+	return g_VertexShaders.UsedSize();
+}
+
+size_t Shaders_GetPixelShaderCount()
+{
+	return g_PixelShaders.UsedSize();
+}
+
+size_t Shaders_GetGeometryShaderCount()
+{
+	return g_GeometryShaders.UsedSize();
+}
+
+size_t Shaders_GetComputeShaderCount()
+{
+	return g_ComputeShaders.UsedSize();
+}
+
 void ReloadShaders()
 {
 	for (size_t i = 0; i < g_VertexShaders.Size(); i++)

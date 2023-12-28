@@ -89,3 +89,5 @@ struct SamplerDesc
 
 void InitSamplers(const SamplerDesc* const descs, size_t count);
 
+size_t Samplers_GetSamplerCount();
+

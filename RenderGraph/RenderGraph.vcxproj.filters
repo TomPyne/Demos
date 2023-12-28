@@ -40,6 +40,9 @@
     <Filter Include="Source Files\Utils\RenderGraph">
       <UniqueIdentifier>{8d005b26-245c-4848-a1db-72f516b0828b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Utils\UI">
+      <UniqueIdentifier>{c19a336d-a615-4f28-bc8f-28a8ccdd0131}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="RenderGraphMain.cpp">
@@ -122,6 +125,9 @@
     </ClCompile>
     <ClCompile Include="..\Utils\Logging.cpp">
       <Filter>Source Files\Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Utils\UI\RenderDebug.cpp">
+      <Filter>Source Files\Utils\UI</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -217,6 +223,9 @@
     </ClInclude>
     <ClInclude Include="..\Utils\Logging.h">
       <Filter>Source Files\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Utils\UI\RenderDebug.h">
+      <Filter>Source Files\Utils\UI</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

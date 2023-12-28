@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <array>
 #include <bitset>
+#include <unordered_set>
 
 #define RG_VALIDATION 1
 
@@ -14,10 +15,9 @@ using RGResourceBits = std::bitset<RG_MAX_RESOURCES>;
 
 struct RGCachedTexture
 {
-	RenderFormat format;
-	u32 width;
-	u32 height;
-	Texture_t textureHandle;
+	RenderFormat format = RenderFormat::UNKNOWN;
+	uint3 dimensions = {};
+	Texture_t textureHandle = Texture_t::INVALID;
 };
 
 std::vector<RGCachedTexture> g_cachedTextures;
@@ -27,7 +27,7 @@ static Texture_t FindOrCreateTexture(RenderFormat format, u32 width, u32 height,
 	u32 idx = 0;
 	for( ; idx < g_cachedTextures.size(); idx++ )
 	{
-		if (g_cachedTextures[idx].format == format && g_cachedTextures[idx].width == width && g_cachedTextures[idx].height == height)
+		if (g_cachedTextures[idx].format == format && g_cachedTextures[idx].dimensions.x == width && g_cachedTextures[idx].dimensions.y == height)
 		{
 			break;
 		}
@@ -372,16 +372,14 @@ void RenderGraph::Build()
 			}
 		}
 
-		std::vector<RenderGraphResource_t> usedResources;
+		std::unordered_set<RenderGraphResource_t> usedResources;
 		for (const RenderPass* rp : _consolidatedPasses)
 		{
 			for (const RenderPassResource& res : rp->_resources)
 			{
-				usedResources.push_back(res._resourceHandle);
+				usedResources.insert(res._resourceHandle);
 			}
 		}
-
-		usedResources.erase(std::unique(usedResources.begin(), usedResources.end()), usedResources.end());
 
 		for (RenderGraphResource_t handle : usedResources)
 		{
@@ -466,7 +464,13 @@ RenderGraph::~RenderGraph()
 	for (const RenderGraphResource& resource : _resources)
 	{
 		if (resource.type == RenderGraphResourceType::TEXTURE)
-			Render_Release(resource.texture.tex);
+		{
+			RGCachedTexture tex = {};
+			tex.format = resource.texture.format;
+			tex.dimensions = resource.texture.dimensions;
+			tex.textureHandle = resource.texture.tex;
+			g_cachedTextures.push_back(tex);
+		}
 	}
 }
 

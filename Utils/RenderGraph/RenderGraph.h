@@ -159,6 +159,7 @@ private:
 			struct
 			{
 				Texture_t tex = Texture_t::INVALID;
+				RenderFormat format = RenderFormat::UNKNOWN;
 				uint3 dimensions = {};
 			} texture;
 		};
