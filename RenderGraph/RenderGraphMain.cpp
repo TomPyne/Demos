@@ -18,6 +18,19 @@
 
 struct
 {
+	bool enabled = true;
+	float strength = 0.1f;
+	float radius = 0.05f;
+} g_bloom;
+
+struct
+{
+	bool enabled = true;
+	float exposure = 1.0f;
+} g_tonemap;
+
+struct
+{
 	u32 w = 0;
 	u32 h = 0;
 	FlyCamera cam;
@@ -69,7 +82,7 @@ GraphicsPipelineState_t pipelines[1u << (1u + 2u)];
 
 void InitPipelines()
 {
-	const char* shaderPath = "Gltf Viewer/Mesh.hlsl";
+	const char* shaderPath = "RenderGraph/Shaders/Mesh.hlsl";
 
 	VertexShader_t vs = CreateVertexShader(shaderPath);
 	PixelShader_t blendPs = CreatePixelShader(shaderPath);
@@ -263,6 +276,30 @@ void DrawUI()
 		return;
 	}
 
+	//if (ImGui::Button("Recompile Shaders"))
+	//{
+	//	ReloadShaders();
+	//}
+
+	ImGui::Checkbox("Bloom", &g_bloom.enabled);
+
+	if (g_bloom.enabled)
+	{
+		ImGui::InputFloat("Strength", &g_bloom.strength);
+		ImGui::InputFloat("Radius", &g_bloom.radius);
+	}
+
+	ImGui::Separator();
+
+	ImGui::Checkbox("Tonemap", &g_tonemap.enabled);
+
+	if (g_tonemap.enabled)
+	{
+		ImGui::InputFloat("Exposure", &g_tonemap.exposure);
+	}
+
+	ImGui::Separator();
+
 	ImGui::SliderFloat("Sun Pitch", &lightData.sunPitchYaw.x, -90.0f, 90.0f);
 	ImGui::SliderFloat("Sun Yaw", &lightData.sunPitchYaw.y, -180.0f, 180.0f);
 	ImGui::DragFloat3("Radiance", lightData.radiance.v);
@@ -338,7 +375,7 @@ void AddScenePass(RenderGraph& rg, RenderGraphResource_t sceneColor, RenderGraph
 			const RenderTargetView_t sceneRtv = rdg.GetRTV(sceneColor);
 			const DepthStencilView_t sceneDsv = rdg.GetDSV(sceneDepth);
 
-			const float clearCol[] = { 1.0f, 0.0f, 0.0f, 1.0f };
+			const float clearCol[] = { 0.01f, 0.01f, 0.01f, 1.0f };
 			cl->ClearRenderTarget(sceneRtv, clearCol);
 			cl->ClearDepth(sceneDsv, 1.0f);
 
@@ -356,7 +393,7 @@ void AddScenePass(RenderGraph& rg, RenderGraphResource_t sceneColor, RenderGraph
 			{
 				matrix viewProjMat;
 				float3 camPos;
-				float pad0;
+				float preExposure;
 				float3 lightDir;
 				float pad1;
 				float3 lightRadiance;
@@ -367,6 +404,8 @@ void AddScenePass(RenderGraph& rg, RenderGraphResource_t sceneColor, RenderGraph
 
 			viewBufData.viewProjMat = screenData.cam.GetView() * screenData.cam.GetProjection();
 			viewBufData.camPos = screenData.cam.GetPosition();
+
+			viewBufData.preExposure = g_tonemap.enabled ? 1.0f / g_tonemap.exposure : 1.0f;
 
 			const float pitchRad = ConvertToRadians(lightData.sunPitchYaw.x);
 			const float yawRad = ConvertToRadians(lightData.sunPitchYaw.y);
@@ -389,6 +428,215 @@ void AddScenePass(RenderGraph& rg, RenderGraphResource_t sceneColor, RenderGraph
 			cl->SetRenderTargets(&empty, 1, DepthStencilView_t::INVALID);
 		}
 	);
+}
+
+void AddBloomPass(RenderGraph& rg, RenderGraphResource_t source, RenderGraphResource_t target)
+{
+	static ComputePipelineState_t bloomDownSampleCs = ComputePipelineState_t::INVALID;
+
+	if (bloomDownSampleCs == ComputePipelineState_t::INVALID)
+	{
+		ComputePipelineStateDesc desc = {};
+		desc.cs = CreateComputeShader("RenderGraph/Shaders/BloomDownSampleCS.hlsl");
+
+		bloomDownSampleCs = CreateComputePipelineState(desc);
+
+		ASSERTMSG(bloomDownSampleCs != ComputePipelineState_t::INVALID, "Failed to create up sample shader");
+	}
+
+	static ComputePipelineState_t bloomUpSampleCs = ComputePipelineState_t::INVALID;
+
+	if (bloomUpSampleCs == ComputePipelineState_t::INVALID)
+	{
+		ComputePipelineStateDesc desc = {};
+		desc.cs = CreateComputeShader("RenderGraph/Shaders/BloomUpSampleCS.hlsl");
+
+		bloomUpSampleCs = CreateComputePipelineState(desc);
+
+		ASSERTMSG(bloomUpSampleCs != ComputePipelineState_t::INVALID, "Failed to create up sample shader");
+	}
+
+	static ComputePipelineState_t bloomApplyCs = ComputePipelineState_t::INVALID;
+
+	if (bloomApplyCs == ComputePipelineState_t::INVALID)
+	{
+		ComputePipelineStateDesc desc = {};
+		desc.cs = CreateComputeShader("RenderGraph/Shaders/BloomApplyCS.hlsl");
+
+		bloomApplyCs = CreateComputePipelineState(desc);
+
+		ASSERTMSG(bloomApplyCs != ComputePipelineState_t::INVALID, "Failed to create up sample shader");
+	}
+
+	float2 mipSize = float2((float)screenData.w, (float)screenData.h);
+	uint2 mipIntSize = mipSize;
+
+	static const char* BloomDownSampleNames[6] = { "Bloom_Downsample0", "Bloom_Downsample1", "Bloom_Downsample2", "Bloom_Downsample3", "Bloom_Downsample4", "Bloom_Downsample5" };
+	static const char* BloomUpSampleNames[6] = { "Bloom_Upsample0", "Bloom_Upsample1", "Bloom_Upsample2", "Bloom_Upsample3", "Bloom_Upsample4", "Bloom_Upsample5" };
+	static const char* BloomTextureNames[6] = { "Bloom_HalfRes", "Bloom_QuarterRes", "Bloom_EigthRes", "Bloom_SixteenthRes", "Bloom_ThirtySecondRes", "Bloom_SixtyFourthRes" };
+
+	RenderGraphTextureDesc desc = {};
+	desc.format = RenderFormat::R16G16B16A16_FLOAT;
+
+	RenderGraphResource_t bloomTextures[6] = {};
+
+	uint2 mipSizes[6];
+	u32 mipCount = 0;
+	for (u32 i = 0; i < 6; i++)
+	{
+		mipSize *= 0.5f;
+		mipIntSize /= 2;
+
+		mipIntSize.x = Max(mipIntSize.x, 1u);
+		mipIntSize.y = Max(mipIntSize.y, 1u);
+
+		if ((mipIntSize.x <= 32 || mipIntSize.y <= 32))
+			break;
+
+		mipSizes[i] = mipIntSize;
+
+		mipCount++;
+
+		desc.width = mipIntSize.x;
+		desc.height = mipIntSize.y;
+		bloomTextures[i] = rg.RegisterTexture(BloomTextureNames[i], desc);
+	}
+
+	for (u32 i = 0; i < mipCount; i++)
+	{
+		RenderGraphResource_t outRes = bloomTextures[i];
+		RenderGraphResource_t inRes = i == 0 ? source : bloomTextures[i - 1];
+		rg.AddPass(BloomDownSampleNames[i], RenderPassType::COMPUTE)
+			.AddComputeTarget(outRes, RenderPassOutputAccess::DONT_CARE)
+			.ReadResource(inRes)
+			.SetExecuteCallback([outRes, inRes](RenderGraph& rg, CommandList* cl)
+			{
+				const UnorderedAccessView_t uav = rg.GetUAV(outRes);
+				const ShaderResourceView_t srv = rg.GetSRV(inRes);
+
+				cl->SetPipelineState(bloomDownSampleCs);
+
+				uint3 dimensions = rg.GetResourceDimensions(outRes);
+
+				cl->BindComputeUAVs(0, 1, &uav);
+				cl->BindComputeSRVs(0, 1, &srv);
+
+				struct
+				{
+					uint2 dimensions;
+					float radius = g_bloom.radius;
+					float pad = 0.0f;
+				} shaderData;
+
+				shaderData.dimensions = uint2{ dimensions.x, dimensions.y };
+
+				// Uploading constant data here will probably cause headaches with Dx12
+				// Need to find a way of enqueing these during the build stage
+				DynamicBuffer_t shaderCbuf = CreateDynamicConstantBuffer(&shaderData, sizeof(shaderData));
+
+				cl->BindComputeCBVs(0, 1, &shaderCbuf);
+
+				cl->Dispatch(DivideRoundUp(dimensions.x, 8u), DivideRoundUp(dimensions.y, 8u), 1u);
+
+				UnorderedAccessView_t empty = UnorderedAccessView_t::INVALID;
+				cl->BindComputeUAVs(0, 1, &empty);
+
+				ShaderResourceView_t emptySrv = ShaderResourceView_t::INVALID;
+				cl->BindComputeSRVs(0, 1, &emptySrv);
+			}
+		);
+	}
+
+	for (u32 i = mipCount - 1; i > 0; --i)
+	{
+		RenderGraphResource_t outRes = bloomTextures[i - 1];
+		RenderGraphResource_t inRes = bloomTextures[i];
+
+		rg.AddPass(BloomUpSampleNames[i], RenderPassType::COMPUTE)
+			.AddComputeTarget(outRes, RenderPassOutputAccess::DONT_CARE)
+			.ReadResource(inRes)
+			.SetExecuteCallback([outRes, inRes](RenderGraph& rg, CommandList* cl)
+			{
+				const UnorderedAccessView_t uav = rg.GetUAV(outRes);
+				const ShaderResourceView_t srv = rg.GetSRV(inRes);
+
+				cl->SetPipelineState(bloomUpSampleCs);
+
+				uint3 dimensions = rg.GetResourceDimensions(outRes);
+				uint3 srcDimensions = rg.GetResourceDimensions(inRes);
+
+				cl->BindComputeUAVs(0, 1, &uav);
+				cl->BindComputeSRVs(0, 1, &srv);
+
+				struct
+				{
+					uint2 dimensions;
+					float2 texelSize;
+				} shaderData;
+
+				shaderData.dimensions = { dimensions.x, dimensions.y };
+				shaderData.texelSize = { 1.0f / srcDimensions.x, 1.0f / srcDimensions.y };
+
+				// Uploading constant data here will probably cause headaches with Dx12
+				// Need to find a way of enqueing these during the build stage
+				DynamicBuffer_t shaderCbuf = CreateDynamicConstantBuffer(&shaderData, sizeof(shaderData));
+
+				cl->BindComputeCBVs(0, 1, &shaderCbuf);
+
+				cl->Dispatch(DivideRoundUp(dimensions.x, 8u), DivideRoundUp(dimensions.y, 8u), 1u);
+
+				UnorderedAccessView_t empty = UnorderedAccessView_t::INVALID;
+				cl->BindComputeUAVs(0, 1, &empty);
+
+				ShaderResourceView_t emptySrv = ShaderResourceView_t::INVALID;
+				cl->BindComputeSRVs(0, 1, &emptySrv);
+			}
+		);
+	}
+
+	{
+		RenderGraphResource_t outRes = target;
+		RenderGraphResource_t inRes = bloomTextures[0];
+		rg.AddPass("Bloom_Apply", RenderPassType::COMPUTE)
+			.AddComputeTarget(outRes, RenderPassOutputAccess::LOAD)
+			.ReadResource(inRes)
+			.SetExecuteCallback([outRes, inRes](RenderGraph& rg, CommandList* cl)
+			{
+				const UnorderedAccessView_t uav = rg.GetUAV(outRes);
+				const ShaderResourceView_t srv = rg.GetSRV(inRes);
+
+				cl->SetPipelineState(bloomApplyCs);
+
+				uint3 dimensions = rg.GetResourceDimensions(outRes);
+
+				cl->BindComputeUAVs(0, 1, &uav);
+				cl->BindComputeSRVs(0, 1, &srv);
+
+				struct
+				{
+					uint2 dimensions;
+					float strength = g_bloom.strength;
+					float pad = 0.0f;
+				} shaderData;
+
+				shaderData.dimensions = uint2{ dimensions.x, dimensions.y };
+
+				// Uploading constant data here will probably cause headaches with Dx12
+				// Need to find a way of enqueing these during the build stage
+				DynamicBuffer_t shaderCbuf = CreateDynamicConstantBuffer(&shaderData, sizeof(shaderData));
+
+				cl->BindComputeCBVs(0, 1, &shaderCbuf);
+
+				cl->Dispatch(DivideRoundUp(dimensions.x, 8u), DivideRoundUp(dimensions.y, 8u), 1u);
+
+				UnorderedAccessView_t emptyUav = UnorderedAccessView_t::INVALID;
+				cl->BindComputeUAVs(0, 1, &emptyUav);
+
+				ShaderResourceView_t emptySrv = ShaderResourceView_t::INVALID;
+				cl->BindComputeSRVs(0, 1, &emptySrv);
+			}
+		);
+	}
 }
 
 void AddTonemapPass(RenderGraph& rg, RenderGraphResource_t input)
@@ -432,6 +680,9 @@ void AddTonemapPass(RenderGraph& rg, RenderGraphResource_t input)
 
 			UnorderedAccessView_t empty = UnorderedAccessView_t::INVALID;
 			cl->BindComputeUAVs(0, 1, &empty);
+
+			ShaderResourceView_t emptySrv = ShaderResourceView_t::INVALID;
+			cl->BindComputeSRVs(0, 1, &emptySrv);
 		}
 	);
 }
@@ -530,9 +781,10 @@ int main()
 	}
 
 	{
-		std::vector<SamplerDesc> samplers(2);
+		std::vector<SamplerDesc> samplers(3);
 		samplers[0].AddressModeUVW(SamplerAddressMode::Wrap).FilterModeMinMagMip(SamplerFilterMode::Point);
 		samplers[1].AddressModeUVW(SamplerAddressMode::Wrap).FilterModeMinMagMip(SamplerFilterMode::Linear);
+		samplers[2].AddressModeUVW(SamplerAddressMode::Clamp).FilterModeMinMagMip(SamplerFilterMode::Linear);
 
 		InitSamplers(samplers.data(), samplers.size());
 	}
@@ -583,67 +835,13 @@ int main()
 		screenTexDesc.format = RenderFormat::R16G16B16A16_FLOAT;
 		RenderGraphResource_t sceneColor = rdg.RegisterTexture("SceneColor", screenTexDesc);
 
-		bool postProcess = false;
-		//RenderGraphResource_t sceneTarget = postProcess ? sceneColor : backBuffer;
-
-#if 0
-
-		// Bloom
-		{
-			float2 mipSize = float2((float)screenData.w, (float)screenData.h);
-			uint2 mipIntSize = mipSize;
-
-			static const char* BloomDownSampleNames[6] = { "Bloom_Downsample0", "Bloom_Downsample1", "Bloom_Downsample2", "Bloom_Downsample3", "Bloom_Downsample4", "Bloom_Downsample5" };
-			static const char* BloomUpSampleNames[6] = { "Bloom_Upsample0", "Bloom_Upsample1", "Bloom_Upsample2", "Bloom_Upsample3", "Bloom_Upsample4", "Bloom_Upsample5" };
-			static const char* BloomTextureNames[6] = { "Bloom_HalfRes", "Bloom_QuarterRes", "Bloom_EigthRes", "Bloom_SixteenthRes", "Bloom_ThirtySecondRes", "Bloom_SixtyFourthRes" };
-
-			uint2 mipSizes[6];
-			u32 mipCount = 0;
-			for (u32 i = 0; i < 6; i++)
-			{
-				mipSize *= 0.5f;
-				mipIntSize /= 2;
-
-				mipIntSize.x = Max(mipIntSize.x, 1u);
-				mipIntSize.y = Max(mipIntSize.y, 1u);
-
-				mipSizes[i] = mipIntSize;
-
-				mipCount++;
-
-				if ((mipIntSize.x <= 1 && mipIntSize.y <= 1))
-					break;
-			}
-
-			RenderGraphResource_t bloomTextures[6];
-			for (u32 i = 0; i < mipCount; i++)
-			{
-				bloomTextures[i] = rdg.AddResource(BloomTextureNames[i]);
-			}
-
-			for (u32 i = 0; i < mipCount; i++)
-			{
-				rdg.AddPass(BloomDownSampleNames[i], RenderPassType::COMPUTE_RW)
-					.AddComputeTarget(bloomTextures[i], RenderPassResourceAccess::WRITE)
-					.SampleTexture(i == 0 ? sceneColor : bloomTextures[i-1]);
-			}
-
-			for (u32 i = mipCount - 1; i > 0; --i)
-			{
-				rdg.AddPass(BloomUpSampleNames[i], RenderPassType::COMPUTE_RW)
-					.AddComputeTarget(bloomTextures[i-1], RenderPassResourceAccess::WRITE)
-					.SampleTexture(bloomTextures[i]);
-			}
-
-			rdg.AddPass("Bloom_Apply", RenderPassType::COMPUTE_RW)
-				.AddComputeTarget(sceneWithBloom, RenderPassResourceAccess::WRITE)
-				.SampleTexture(bloomTextures[0]);
-		}
-
-#endif
 		AddScenePass(rdg, sceneColor, sceneDepth);
 
-		AddTonemapPass(rdg, sceneColor);
+		if(g_bloom.enabled)
+			AddBloomPass(rdg, sceneColor, sceneColor);
+
+		if(g_tonemap.enabled)
+			AddTonemapPass(rdg, sceneColor);
 
 		AddResolvePass(rdg, backbuffer, sceneColor);
 

@@ -1,14 +1,18 @@
 cbuffer viewBuf : register(b0)
 {
     float4x4 ViewProjectionMatrix;
+
     float3 CamPos;
-    float pad0;
+    float PreExposure;
+
     float3 LightDir;
     float pad1;
+
     float3 LightRadiance;
     float pad2;
+
     float3 LightAmbient;
-    float3 pad3;
+    float pad3;
 };
 
 struct PS_INPUT
@@ -118,17 +122,8 @@ float3 SpecularBrdf(float3 f0, float alphaRoughness, float specWeight, float vdh
 
 float3 DiffuseBrdf(float3 f, float3 diffuse)
 {
-    return (float3(1.0f, 1.0f, 1.0f) - f) * (1.0f / M_PI) * diffuse;
-}
 
-float3 Tonemap(float3 x)
-{
-    const float a = 2.51f;
-    const float b = 0.03f;
-    const float c = 2.43f;
-    const float d = 0.59f;
-    const float e = 0.14f;
-    return saturate((x * (a * x + b)) / (x * (c * x + d) + e));
+    return (float3(1.0f, 1.0f, 1.0f) - f) * (1.0f / M_PI) * diffuse;
 }
 
 float4 main(PS_INPUT input, bool frontFace : SV_IsFrontFace ) : SV_Target0
@@ -197,7 +192,8 @@ float4 main(PS_INPUT input, bool frontFace : SV_IsFrontFace ) : SV_Target0
         diff += adjustedRadiance * DiffuseBrdf(f0, lerp(colAlpha.rgb, black, metallic));
     }
 
-    return float4(Tonemap(diff + spec + LightAmbient), colAlpha.a); 
+    //return float4(DiffuseBrdf(f0Dielectric, colAlpha.rgb), colAlpha.a); 
+    return float4((diff + spec + LightAmbient) * PreExposure, colAlpha.a); 
 };
 
 #endif
