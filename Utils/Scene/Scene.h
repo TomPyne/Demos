@@ -5,6 +5,14 @@
 #include <memory>
 #include <vector>
 
+struct RenderNode
+{
+	// buffers
+	// material
+	// transform
+	// aabb
+};
+
 struct SceneRenderable
 {
 

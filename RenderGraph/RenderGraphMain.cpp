@@ -34,7 +34,6 @@ struct
 	u32 w = 0;
 	u32 h = 0;
 	FlyCamera cam;
-	Texture_t DepthTex = Texture_t::INVALID;
 } screenData;
 
 struct
@@ -44,28 +43,6 @@ struct
 	float3 ambient = float3{ 0.02f, 0.02f, 0.04f };
 } lightData;
 
-static void ResizeTargets(u32 w, u32 h)
-{
-	w = Max(w, 1u);
-	h = Max(h, 1u);
-
-	if (w == screenData.w && h == screenData.h)
-		return;
-
-	screenData.w = w;
-	screenData.h = h;
-
-	screenData.cam.Resize(w, h);
-
-	Render_Release(screenData.DepthTex);
-
-	TextureCreateDesc desc = {};
-	desc.width = w;
-	desc.height = h;
-	desc.format = RenderFormat::D32_FLOAT;
-	desc.flags = RenderResourceFlags::DSV;
-	screenData.DepthTex = CreateTexture(desc);
-}
 
 union PipelineID
 {
@@ -502,6 +479,9 @@ void AddBloomPass(RenderGraph& rg, RenderGraphResource_t source, RenderGraphReso
 		bloomTextures[i] = rg.RegisterTexture(BloomTextureNames[i], desc);
 	}
 
+	if (mipCount == 0)
+		return;
+
 	for (u32 i = 0; i < mipCount; i++)
 	{
 		RenderGraphResource_t outRes = bloomTextures[i];
@@ -907,7 +887,11 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 			if (rv)	rv->Resize(w, h);
 
-			ResizeTargets(w, h);
+			screenData.w = (uint32_t)w;
+			screenData.h = (uint32_t)h;
+
+			screenData.cam.Resize(w, h);
+
 			return 0;
 		}
 

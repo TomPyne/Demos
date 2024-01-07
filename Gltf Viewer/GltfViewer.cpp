@@ -86,6 +86,7 @@ void InitPipelines()
 		{"NORMAL", 0, RenderFormat::R32G32B32_FLOAT, 1, 0, InputClassification::PerVertex, 0 },
 		{"TANGENT", 0, RenderFormat::R32G32B32A32_FLOAT, 2, 0, InputClassification::PerVertex, 0 },
 		{"TEXCOORD", 0, RenderFormat::R32G32_FLOAT, 3, 0, InputClassification::PerVertex, 0 },
+		{"TEXCOORD", 1, RenderFormat::R32G32_FLOAT, 4, 0, InputClassification::PerVertex, 0 },
 	};
 
 	GraphicsPipelineStateDesc desc = {};
@@ -129,6 +130,10 @@ struct MaterialInstance
 	Texture_t baseColorTexture = Texture_t::INVALID;
 	Texture_t normalTexture = Texture_t::INVALID;
 	Texture_t metallicRoughnessTexture = Texture_t::INVALID;
+
+	u32 baseColorUv = 0;
+	u32 normalUv = 0;
+	u32 metallicRoughnessUv = 0;
 
 	bool alphaMask = false;
 	float alphaCutoff = 0.5f;
@@ -293,9 +298,11 @@ uint32_t GltfProcessor::ProcessMesh(const GltfMeshPrimitive& prim)
 		else if (attr.semantic == "NORMAL") targetBuf = &m.normalBuf;
 		else if (attr.semantic == "TANGENT") targetBuf = &m.tangentBuf;
 		else if (attr.semantic == "TEXCOORD_0") targetBuf = &m.texcoordBufs[0];
+		else if (attr.semantic == "TEXCOORD_1") targetBuf = &m.texcoordBufs[1];
 		else
 		{
 			LOGWARNING("Unsupported buffer in ProcessMesh %s", attr.semantic.c_str());
+			continue;
 		}
 		
 		const GltfAccessor& accessor = _gltf.accessors[attr.index];
