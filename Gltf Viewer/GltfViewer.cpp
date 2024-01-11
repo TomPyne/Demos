@@ -174,7 +174,6 @@ struct Model
 	std::vector<uint32_t> meshes;
 };
 
-std::vector<Texture_t> loadedTextures;
 std::vector<Mesh> loadedMeshes;
 std::vector<Model> loadedModels;
 
@@ -395,7 +394,6 @@ int main(int argc, char* argv[])
 	::RegisterClassEx(&wc);
 	HWND hwnd = ::CreateWindow(wc.lpszClassName, L"Gltf Viewew", WS_OVERLAPPEDWINDOW, 100, 100, 1280, 800, NULL, NULL, wc.hInstance, NULL);
 
-	loadedTextures.resize(1);
 	loadedMeshes.resize(1);
 	loadedModels.resize(1);
 

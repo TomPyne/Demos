@@ -104,6 +104,49 @@ Mesh CreateSphere(u32 slices, u32 stacks)
 	return mesh;
 }
 
+Mesh CreateVolume()
+{
+	Mesh mesh;
+
+	constexpr float3 ftl = float3(-0.5f, 0.5f, 0.5f);
+	constexpr float3 ftr = float3(0.5f, 0.5f, 0.5f);
+	constexpr float3 fbr = float3(0.5f, -0.5f, 0.5f);
+	constexpr float3 fbl = float3(-0.5f, -0.5f, 0.5f);
+
+	constexpr float3 btl = float3(-0.5f, 0.5f, -0.5f);
+	constexpr float3 btr = float3(0.5f, 0.5f, -0.5f);
+	constexpr float3 bbr = float3(0.5f, -0.5f, -0.5f);
+	constexpr float3 bbl = float3(-0.5f, -0.5f, -0.5f);
+
+	float3 PosVerts[6 * 4] =
+	{
+		ftl, ftr, fbr, fbl,
+		btr, btl, bbl, bbr,
+		ftr, btr, bbr, fbr,
+		btl, ftl, fbl, bbl,
+		fbl, fbr, bbr, bbl,
+		ftl, btl, btr, ftr,
+	};
+
+	mesh.vbuf = CreateVertexBuffer(PosVerts, sizeof(PosVerts));
+
+	u16 Indices[6 * 6] =
+	{
+		2, 1, 0, 0, 3, 2,
+		6, 5, 4, 4, 7, 6,
+		10, 9, 8, 8, 11, 10,
+		14, 13, 12, 12, 15, 14,
+		18, 17, 16, 16, 19, 18,
+		22, 21, 20, 20, 23, 22,
+	};
+
+	mesh.ibuf = CreateIndexBuffer(Indices, sizeof(Indices));
+
+	mesh.numIndices = ARRAYSIZE(Indices);
+
+	return mesh;
+}
+
 GraphicsPipelineState_t CreatePipelineState()
 {
 	const char* shaderPath = "Volumetrics/Volumetrics.hlsl";
@@ -114,7 +157,7 @@ GraphicsPipelineState_t CreatePipelineState()
 	};
 
 	GraphicsPipelineStateDesc desc = {};
-	desc.RasterizerDesc(PrimitiveTopologyType::Triangle, FillMode::Solid, CullMode::Back);
+	desc.RasterizerDesc(PrimitiveTopologyType::Triangle, FillMode::Solid, CullMode::Front);
 	desc.DepthDesc(true, ComparisionFunc::LessEqual);
 	desc.numRenderTargets = 1;
 	desc.blendMode[0].Default();
@@ -272,6 +315,11 @@ void DrawUI()
 		return;
 	}
 
+	if (ImGui::Button("Recompile"))
+	{
+		ReloadShaders();
+	}
+
 	ImGui::SliderFloat("Sun Pitch", &lightData.sunPitchYaw.x, -90.0f, 90.0f);
 	ImGui::SliderFloat("Sun Yaw", &lightData.sunPitchYaw.y, -180.0f, 180.0f);
 	ImGui::DragFloat3("Radiance", lightData.radiance.v);
@@ -325,11 +373,11 @@ int main(int argc, char* argv[])
 
 	HighResolutionClock updateClock;
 
-	UpdateView(float3{ -2, 0, -2 }, 0.0f, 45.0f);
+	UpdateView(float3{ -1, 0, 0 }, 0.0f, 0.0f);
 
 	GraphicsPipelineState_t pso = CreatePipelineState();
 
-	Mesh mesh = CreateSphere(16, 16);
+	Mesh mesh = CreateVolume();
 
 	// Main loop
 	bool bQuit = false;
