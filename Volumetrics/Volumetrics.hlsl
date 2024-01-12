@@ -117,6 +117,8 @@ float4 main(PS_INPUT input ) : SV_Target0
     float ns = ceil((eyet1 - eyet0) / stepSize);
     float3 result = float3(0, 0, 0);
 
+    float3 lightCol = float3(1.3f, 0.3f, 0.9f);
+
     for(float n = 0.0f; n < ns; n += 1.0f)
     {
         float t = eyet1 - stepSize * (n + 0.5f);
@@ -130,9 +132,9 @@ float4 main(PS_INPUT input ) : SV_Target0
 
         // Calculate in-scatter.
         float ist0, ist1;
-        if(SphereIntersect(MakeRay(samplePos, LightDir), ist0, ist1))
+        if(SphereIntersect(MakeRay(samplePos, -LightDir), ist0, ist1))
         {
-            float lightAtten = exp(ist1 * c_sigma);
+            float lightAtten = exp(-ist1 * c_sigma);
             result += LightRadiance * lightAtten * stepSize;
         }
 

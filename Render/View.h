@@ -17,6 +17,7 @@ struct RenderView
 	void Present(bool vsync);
 
 	void ClearCurrentBackBufferTarget(CommandList* cl);
+	void ClearCurrentBackBufferTarget(CommandList* cl, const float clearCol[4]);
 
 	RenderTargetView_t GetCurrentBackBufferRTV();
 

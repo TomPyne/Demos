@@ -112,12 +112,17 @@ RenderView* GetRenderViewForHwnd(intptr_t hwnd)
 	return iter != g_views.end() ? iter->second : nullptr;
 }
 
-void RenderView::ClearCurrentBackBufferTarget(CommandList* cl)
+void RenderView::ClearCurrentBackBufferTarget( CommandList* cl )
+{
+	constexpr float DefaultClearCol[4] = { 0.0f, 0.0f, 0.2f, 0.0f };
+	ClearCurrentBackBufferTarget( cl, DefaultClearCol );
+}
+
+void RenderView::ClearCurrentBackBufferTarget(CommandList* cl, const float clearCol[4])
 {
 	RenderTargetView_t rtv = GetCurrentBackBufferRTV();
 	if (rtv != RenderTargetView_t::INVALID)
 	{
-		constexpr float clearCol[4] = { 0.2f, 0.2f, 0.6f, 1.0f };
 		cl->ClearRenderTarget(rtv, clearCol);
 	}
 }

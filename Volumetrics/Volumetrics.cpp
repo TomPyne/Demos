@@ -195,7 +195,7 @@ struct
 struct
 {
 	float2 sunPitchYaw = float2{70.0f, 0.0f};
-	float3 radiance = float3{5.0f};
+	float3 radiance = float3{1.3f, 0.3f, 0.9f};
 	float3 ambient = float3{0.02f, 0.02f, 0.04f};
 } lightData;
 
@@ -414,7 +414,8 @@ int main(int argc, char* argv[])
 
 		CommandListPtr cl = CommandList::Create();
 
-		view->ClearCurrentBackBufferTarget(cl.get());
+		constexpr float ClearCol[4] = {0.572f, 0.772f, 0.921f, 0.0f};
+		view->ClearCurrentBackBufferTarget(cl.get(), ClearCol );
 
 		DepthStencilView_t dsv = GetTextureDSV(screenData.DepthTex);
 
@@ -451,10 +452,11 @@ int main(int argc, char* argv[])
 		viewBufData.viewProjMat = viewData.view * screenData.projection;
 		viewBufData.camPos = viewData.position;
 
-		const float pitchRad = ConvertToRadians(lightData.sunPitchYaw.x);
+		const float pitchRad = -ConvertToRadians(lightData.sunPitchYaw.x + 90.0f);
 		const float yawRad = ConvertToRadians(lightData.sunPitchYaw.y);
 
-		viewBufData.lightDir = NormalizeF3(float3{ sinf(yawRad), sinf(-pitchRad), cosf(yawRad) });
+		//viewBufData.lightDir = NormalizeF3(float3{ sinf(yawRad), sinf(-pitchRad), cosf(yawRad) });
+		viewBufData.lightDir = NormalizeF3(float3{ sinf( pitchRad ) * cosf(yawRad), cosf(pitchRad), sinf(pitchRad) *  sinf(yawRad)});
 		viewBufData.lightRadiance = lightData.radiance;
 		viewBufData.lightAmbient = lightData.ambient;
 
