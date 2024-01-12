@@ -23,7 +23,12 @@ cbuffer meshBuf : register(b1)
     row_major float4x4 c_transform;
 
     float3 c_transmission;
-    float c_sigma;
+    float c_sigma_s;
+
+    float c_sigma_a;
+    float c_density;
+    float c_asymmetry;
+    float pad;
 }
 
 #ifdef _VS
@@ -105,6 +110,27 @@ float SphereIntersect(Ray ray, out float t0, out float t1)
     return alpha;
 }
 
+static const float PI = 3.14159265359f;
+
+float IsotropicPhase()
+{
+    return 1.0f / (4.0f * PI);
+}
+
+float HenyeyGreensteinPhase(float g, float cosTheta)
+{
+    float gg = g * g;
+    float n = 1.0f - gg;
+    float d = pow(1.0f + gg - 2.0f * g * cosTheta, 3.0f / 2.0f);
+
+    return IsotropicPhase() * (n / d);
+}
+
+float Rand(float x)
+{
+    return frac(sin(x) * 100000.0f);
+}
+
 float4 main(PS_INPUT input ) : SV_Target0
 {
     Ray eyeRay = MakeRay(input.objPos, normalize(input.worldPos - CamPos));
@@ -119,29 +145,33 @@ float4 main(PS_INPUT input ) : SV_Target0
 
     float3 lightCol = float3(1.3f, 0.3f, 0.9f);
 
+    // can precalculate phase for directional light since directions remain constant along ray.
+    // Wouldn't be possible along a punctual light source.
+    const float cosTheta = dot( eyeRay.direction, -LightDir);
+    const float phase = HenyeyGreensteinPhase(c_asymmetry, cosTheta);
+
     for(float n = 0.0f; n < ns; n += 1.0f)
     {
-        float t = eyet1 - stepSize * (n + 0.5f);
+        float t = eyet0 + stepSize * (n + Rand(n));
         float3 samplePos = eyeRay.origin + t * eyeRay.direction;
 
         // Apply beers law to sample
-        float sampleTransparency = exp(-stepSize * c_sigma);
+        float sample_atten = exp(-stepSize * c_density * (c_sigma_a + c_sigma_s));
 
         // Attenuate final transparency.
-        transparency *= sampleTransparency;
+        transparency *= sample_atten;
 
         // Calculate in-scatter.
         float ist0, ist1;
-        if(SphereIntersect(MakeRay(samplePos, -LightDir), ist0, ist1))
+        if(SphereIntersect(MakeRay(samplePos, -LightDir), ist0, ist1) /*&& ist0 == 0.0f*/)
         {
-            float lightAtten = exp(-ist1 * c_sigma);
-            result += LightRadiance * lightAtten * stepSize;
+            float lightAtten = exp(-c_density * ist1 * (c_sigma_a + c_sigma_s));
+            //result += transparency * LightRadiance * lightAtten * c_sigma_s * c_density * stepSize;            
+
+            result += c_density * c_sigma_s * phase * LightRadiance * lightAtten;
         }
-
-        result *= sampleTransparency;
     }
-
-    return float4(result, (1.0f - transparency) * alpha);    
+    return float4(result * stepSize, (1.0f - transparency) * alpha);    
 }
 
 #endif

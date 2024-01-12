@@ -202,7 +202,10 @@ struct
 struct
 {
 	float3 transmission = float3{ 0.8f, 0.1f, 0.5f };
-	float sigma = 1.0f;
+	float sigmaAbsorption = 0.5f;
+	float sigmaScatter = 0.5f;
+	float density = 1.0f;
+	float asymmetry = 0.8f;
 } scatterData;
 
 static void ResizeTargets(u32 w, u32 h)
@@ -328,7 +331,10 @@ void DrawUI()
 	ImGui::Separator();
 	ImGui::Text("Scattering");
 	ImGui::ColorPicker3("Transmission", scatterData.transmission.v);
-	ImGui::DragFloat("Sigma", &scatterData.sigma, 0.02f);
+	ImGui::DragFloat("Absorption", &scatterData.sigmaAbsorption, 0.02f);
+	ImGui::DragFloat("Scatter", &scatterData.sigmaScatter, 0.02f);
+	ImGui::DragFloat("Density", &scatterData.density, 0.02f);
+	ImGui::DragFloat("Asymmetry", &scatterData.asymmetry, 0.02f);
 
 	ImGui::End();
 }
@@ -408,7 +414,9 @@ int main(int argc, char* argv[])
 			ImGui::Render();
 		}
 
-		scatterData.sigma = Max(scatterData.sigma, 0.0f);
+		scatterData.sigmaAbsorption = Max(scatterData.sigmaAbsorption, 0.0f);
+		scatterData.sigmaScatter = Max(scatterData.sigmaScatter, 0.0f);
+		scatterData.asymmetry = Clamp(scatterData.asymmetry, -1.0f, 1.0f);
 
 		Render_NewFrame();
 
@@ -472,12 +480,20 @@ int main(int argc, char* argv[])
 			{
 				matrix transform;
 				float3 scatter;
-				float sigma;
+				float sigma_s;
+
+				float sigma_a;
+				float density;
+				float asymmetry;
+				float pad;
 			} meshConsts;
 
 			meshConsts.transform = MakeMatrixIdentity();
 			meshConsts.scatter = scatterData.transmission;
-			meshConsts.sigma = scatterData.sigma;
+			meshConsts.sigma_s = scatterData.sigmaScatter;
+			meshConsts.sigma_a = scatterData.sigmaAbsorption;
+			meshConsts.density = scatterData.density;
+			meshConsts.asymmetry = scatterData.asymmetry;
 
 			DynamicBuffer_t cbuf = CreateDynamicConstantBuffer(&meshConsts, sizeof(meshConsts));
 			cl->BindVertexCBVs(1, 1, &cbuf);
