@@ -201,7 +201,6 @@ struct
 
 struct
 {
-	float3 transmission = float3{ 0.8f, 0.1f, 0.5f };
 	float sigmaAbsorption = 0.5f;
 	float sigmaScatter = 0.5f;
 	float density = 1.0f;
@@ -281,7 +280,7 @@ static void CameraUpdate(float delta)
 		float3 fwd = viewData.lookDir;
 		float3 rgt = CrossF3(float3{ 0, 1, 0 }, viewData.lookDir);
 
-		constexpr float speed = 5.0f;
+		constexpr float speed = 1.0f;
 
 		float moveSpeed = speed * delta;
 
@@ -330,7 +329,6 @@ void DrawUI()
 
 	ImGui::Separator();
 	ImGui::Text("Scattering");
-	ImGui::ColorPicker3("Transmission", scatterData.transmission.v);
 	ImGui::DragFloat("Absorption", &scatterData.sigmaAbsorption, 0.02f);
 	ImGui::DragFloat("Scatter", &scatterData.sigmaScatter, 0.02f);
 	ImGui::DragFloat("Density", &scatterData.density, 0.02f);
@@ -448,7 +446,7 @@ int main(int argc, char* argv[])
 		{
 			matrix viewProjMat;
 			float3 camPos;
-			float pad0;
+			float totalTime;
 			float3 lightDir;
 			float pad1;
 			float3 lightRadiance;
@@ -465,6 +463,7 @@ int main(int argc, char* argv[])
 
 		//viewBufData.lightDir = NormalizeF3(float3{ sinf(yawRad), sinf(-pitchRad), cosf(yawRad) });
 		viewBufData.lightDir = NormalizeF3(float3{ sinf( pitchRad ) * cosf(yawRad), cosf(pitchRad), sinf(pitchRad) *  sinf(yawRad)});
+		viewBufData.totalTime = updateClock.GetTotalSeconds();
 		viewBufData.lightRadiance = lightData.radiance;
 		viewBufData.lightAmbient = lightData.ambient;
 
@@ -479,17 +478,14 @@ int main(int argc, char* argv[])
 			struct
 			{
 				matrix transform;
-				float3 scatter;
-				float sigma_s;
 
+				float sigma_s;
 				float sigma_a;
 				float density;
 				float asymmetry;
-				float pad;
 			} meshConsts;
 
 			meshConsts.transform = MakeMatrixIdentity();
-			meshConsts.scatter = scatterData.transmission;
 			meshConsts.sigma_s = scatterData.sigmaScatter;
 			meshConsts.sigma_a = scatterData.sigmaAbsorption;
 			meshConsts.density = scatterData.density;
