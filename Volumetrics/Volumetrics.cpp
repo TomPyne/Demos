@@ -147,7 +147,7 @@ Mesh CreateVolume()
 	return mesh;
 }
 
-GraphicsPipelineState_t CreatePipelineState()
+GraphicsPipelineState_t CreateSmokePipelineState()
 {
 	const char* shaderPath = "Volumetrics/Volumetrics.hlsl";
 
@@ -166,6 +166,27 @@ GraphicsPipelineState_t CreatePipelineState()
 	desc.ps = CreatePixelShader(shaderPath);
 
 	return CreateGraphicsPipelineState(desc, inputDesc, ARRAYSIZE(inputDesc));
+}
+
+GraphicsPipelineState_t CreateAtmospherePipelineState()
+{
+	const char* shaderPath = "Volumetrics/Atmosphere.hlsl";
+
+	InputElementDesc inputDesc[] =
+	{
+		{"POSITION", 0, RenderFormat::R32G32B32_FLOAT, 0, 0, InputClassification::PerVertex, 0 },
+	};
+
+	GraphicsPipelineStateDesc desc = {};
+	desc.RasterizerDesc( PrimitiveTopologyType::Triangle, FillMode::Solid, CullMode::Front );
+	desc.DepthDesc( false, ComparisionFunc::LessEqual );
+	desc.numRenderTargets = 1;
+	desc.blendMode[0].None();
+
+	desc.vs = CreateVertexShader( shaderPath );
+	desc.ps = CreatePixelShader( shaderPath );
+
+	return CreateGraphicsPipelineState( desc, inputDesc, ARRAYSIZE( inputDesc ) );
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -195,7 +216,7 @@ struct
 struct
 {
 	float2 sunPitchYaw = float2{70.0f, 0.0f};
-	float3 radiance = float3{5.0f, 5.0f, 5.0f};
+	float3 radiance = float3{20.0f, 20.0f, 20.0f};
 	float3 ambient = float3{0.02f, 0.02f, 0.04f};
 } lightData;
 
@@ -387,7 +408,8 @@ int main(int argc, char* argv[])
 
 	UpdateView(float3{ -1, 0, 0 }, 0.0f, 0.0f);
 
-	GraphicsPipelineState_t pso = CreatePipelineState();
+	GraphicsPipelineState_t smokePSO = CreateSmokePipelineState();
+	GraphicsPipelineState_t atmospherePSO = CreateAtmospherePipelineState();
 
 	Mesh mesh = CreateVolume();
 
@@ -479,8 +501,32 @@ int main(int argc, char* argv[])
 		cl->BindVertexCBVs(0, 1, &viewBuf);
 		cl->BindPixelCBVs(0, 1, &viewBuf);
 
+		// Draw atmosphere
 		{
-			cl->SetPipelineState(pso);
+			cl->SetPipelineState( atmospherePSO );
+
+			struct
+			{
+				matrix transform;
+			} meshConsts;
+
+			meshConsts.transform = MakeMatrixTranslation( viewData.position );
+
+			DynamicBuffer_t cbuf = CreateDynamicConstantBuffer( &meshConsts, sizeof( meshConsts ) );
+			cl->BindVertexCBVs( 1, 1, &cbuf );
+			cl->BindPixelCBVs( 1, 1, &cbuf );
+
+			u32 stride = (u32)sizeof( float3 );
+			u32 offset = 0;
+			cl->SetVertexBuffers( 0, 1, &mesh.vbuf, &stride, &offset );
+			cl->SetIndexBuffer( mesh.ibuf, RenderFormat::R16_UINT, 0 );
+
+			cl->DrawIndexedInstanced( mesh.numIndices, 1, 0, 0, 0 );
+		}
+
+		// Draw smoke volume
+		{
+			cl->SetPipelineState(smokePSO);
 
 			struct
 			{
