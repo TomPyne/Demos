@@ -258,10 +258,14 @@ float4 main(PS_INPUT input ) : SV_Target0
 
     Ray eyeRay = MakeRay(startPos, eyeDir);
     float eyet0, eyet1;
+
+    // Generate the intersection points, alpha returns 0 on a miss so we can
+    // blend with the final alpha to mask out missed rays.
     float alpha = SphereIntersect(eyeRay, eyet0, eyet1);
 
     float transparency = 1.0f;
 
+    // Calculate steps required based on the intersection distance
     float stepSize = max(c_stepSize, 0.01f);
     float ns = ceil((eyet1 - eyet0) / stepSize);
     stepSize = (eyet1 - eyet0) / ns;
@@ -272,29 +276,45 @@ float4 main(PS_INPUT input ) : SV_Target0
     const float cosTheta = dot( eyeRay.direction, -LightDir);
     const float phase = HenyeyGreensteinPhase(c_asymmetry, cosTheta);
 
+    // Transmission is a function of the total absorbed and scattered light
+    float sigma_t = c_sigma_a + c_sigma_s;
+
     for(float n = 0.0f; n < ns; n += 1.0f)
     {
-        float t = eyet0 + stepSize * (n + Rand(n + startPos.x + TotalTime)); // 
+        // Jitter the sample locations to prevent banding.
+        float t = eyet0 + stepSize * (n + Rand(n + startPos.x + TotalTime));
         float3 samplePos = eyeRay.origin + t * eyeRay.direction;
 
         float density = max(simplex3d_fractal((samplePos * c_noiseScale) +  c_panDir * TotalTime ), 0) * c_density;
+
+        // Density falloff as we approach edge of sphere.
         density *= 1.0f - length(samplePos * 2.0f);
 
         // Apply beers law to sample
-        float sample_atten = exp(-stepSize * density * (c_sigma_a + c_sigma_s));
+        float sample_atten = exp(-stepSize * density * sigma_t);
 
         // Attenuate final transparency.
         transparency *= sample_atten;
 
-        // Calculate in-scatter.
+        // Calculate in-scatter by tracing distance to edge of sphere.
+        // In-scattering assumes homogeneous volume to avoid nested loop.
+        // TODO: Calculate lighting for heterogenous volume for self shadowing
         float ist0, ist1;
         if(SphereIntersect(MakeRay(samplePos, -LightDir), ist0, ist1) /*&& ist0 == 0.0f*/)
         {
-            float lightAtten = exp(-density * ist1 * (c_sigma_a + c_sigma_s));       
+            // Apply beers law to lighting
+            float lightAtten = exp(-density * ist1 * sigma_t);       
 
             result += density * c_sigma_s * phase * LightRadiance * lightAtten * transparency;
         }
     }
+
+    // Result is multiplied by stepSize so that it is renormalised after we accumulate in the integration
+    result *= stepSize;
+
+    // Use regular blending to composite with background
+    // In a fully pathtraced pipeline we would lerp the result with the background colour but i let the
+    // raster pipeline do this for me by inverting the transparency value    
     return float4(result * stepSize, (1.0f - transparency) * alpha);    
 }
 
