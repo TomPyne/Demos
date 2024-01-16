@@ -195,7 +195,7 @@ struct
 struct
 {
 	float2 sunPitchYaw = float2{70.0f, 0.0f};
-	float3 radiance = float3{1.3f, 0.3f, 0.9f};
+	float3 radiance = float3{5.0f, 5.0f, 5.0f};
 	float3 ambient = float3{0.02f, 0.02f, 0.04f};
 } lightData;
 
@@ -203,8 +203,11 @@ struct
 {
 	float sigmaAbsorption = 0.5f;
 	float sigmaScatter = 0.5f;
-	float density = 1.0f;
+	float density = 5.0f;
 	float asymmetry = 0.8f;
+	float3 panSpeed = float3( 0, -1, 0 );
+	float noiseScale = 5.0f;
+	float stepSize = 0.02f;
 } scatterData;
 
 static void ResizeTargets(u32 w, u32 h)
@@ -333,6 +336,11 @@ void DrawUI()
 	ImGui::DragFloat("Scatter", &scatterData.sigmaScatter, 0.02f);
 	ImGui::DragFloat("Density", &scatterData.density, 0.02f);
 	ImGui::DragFloat("Asymmetry", &scatterData.asymmetry, 0.02f);
+	ImGui::InputFloat( "Noise Scale", &scatterData.noiseScale, 0.05f );
+	ImGui::InputFloat3( "Pan Speed", scatterData.panSpeed.v );
+	ImGui::InputFloat( "Step Size", &scatterData.stepSize );
+
+	scatterData.stepSize = Max( scatterData.stepSize, 0.01f );
 
 	ImGui::End();
 }
@@ -461,7 +469,6 @@ int main(int argc, char* argv[])
 		const float pitchRad = -ConvertToRadians(lightData.sunPitchYaw.x + 90.0f);
 		const float yawRad = ConvertToRadians(lightData.sunPitchYaw.y);
 
-		//viewBufData.lightDir = NormalizeF3(float3{ sinf(yawRad), sinf(-pitchRad), cosf(yawRad) });
 		viewBufData.lightDir = NormalizeF3(float3{ sinf( pitchRad ) * cosf(yawRad), cosf(pitchRad), sinf(pitchRad) *  sinf(yawRad)});
 		viewBufData.totalTime = updateClock.GetTotalSeconds();
 		viewBufData.lightRadiance = lightData.radiance;
@@ -481,15 +488,26 @@ int main(int argc, char* argv[])
 
 				float sigma_s;
 				float sigma_a;
-				float density;
 				float asymmetry;
+				float noiseScale;
+
+				float3 movementDirection;
+				float densityScale;
+
+				float stepSize;
+				float3 pad;
 			} meshConsts;
 
 			meshConsts.transform = MakeMatrixIdentity();
+
 			meshConsts.sigma_s = scatterData.sigmaScatter;
 			meshConsts.sigma_a = scatterData.sigmaAbsorption;
-			meshConsts.density = scatterData.density;
 			meshConsts.asymmetry = scatterData.asymmetry;
+			meshConsts.noiseScale = scatterData.noiseScale;
+
+			meshConsts.movementDirection = scatterData.panSpeed;			
+			meshConsts.densityScale = scatterData.density;
+			meshConsts.stepSize = scatterData.stepSize;
 
 			DynamicBuffer_t cbuf = CreateDynamicConstantBuffer(&meshConsts, sizeof(meshConsts));
 			cl->BindVertexCBVs(1, 1, &cbuf);

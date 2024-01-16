@@ -24,8 +24,14 @@ cbuffer meshBuf : register(b1)
 
     float c_sigma_s;
     float c_sigma_a;
-    float c_density;
     float c_asymmetry;
+    float c_noiseScale;
+
+    float3 c_panDir;
+    float c_density;
+
+    float c_stepSize;
+    float3 pad;
 }
 
 #ifdef _VS
@@ -256,12 +262,10 @@ float4 main(PS_INPUT input ) : SV_Target0
 
     float transparency = 1.0f;
 
-    float stepSize = 0.02f;
+    float stepSize = max(c_stepSize, 0.01f);
     float ns = ceil((eyet1 - eyet0) / stepSize);
     stepSize = (eyet1 - eyet0) / ns;
     float3 result = float3(0, 0, 0);
-
-    float3 lightCol = float3(1.3f, 0.3f, 0.9f);
 
     // can precalculate phase for directional light since directions remain constant along ray.
     // Wouldn't be possible along a punctual light source.
@@ -273,7 +277,7 @@ float4 main(PS_INPUT input ) : SV_Target0
         float t = eyet0 + stepSize * (n + Rand(n + startPos.x + TotalTime)); // 
         float3 samplePos = eyeRay.origin + t * eyeRay.direction;
 
-        float density = max(simplex3d_fractal((samplePos * 5) +  float3(0, -TotalTime, 0)), 0) * 5;
+        float density = max(simplex3d_fractal((samplePos * c_noiseScale) +  c_panDir * TotalTime ), 0) * c_density;
         density *= 1.0f - length(samplePos * 2.0f);
 
         // Apply beers law to sample
